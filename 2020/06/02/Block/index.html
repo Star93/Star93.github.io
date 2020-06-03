@@ -15,7 +15,7 @@
 <meta property="og:description" content="block 是 Objective-C 中对闭包的实现。什么是闭包： In programming languages, a closure is a function or reference to a function together with a referencing environment—a table storing a reference to each of the non-l">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-06-02T06:07:32.000Z">
-<meta property="article:modified_time" content="2020-06-03T00:23:39.261Z">
+<meta property="article:modified_time" content="2020-06-03T07:29:46.421Z">
 <meta property="article:author" content="Xin Yang">
 <meta property="article:tag" content="block">
 <meta name="twitter:card" content="summary">
@@ -151,7 +151,38 @@
 <p> 从代码看<br>增加了一个名为 __Block_byref_i_0 的结构体用来保存从外部捕获并且修改的变量 i 。<br>__main_block_impl_0 中引用的是 __Block_byref_i_0 的结构体指针，达到修改外部变量的作用。<br>__Block_byref_i_0 结构体中有 isa ，表明它也是一个对象。<br>因为需要负责 __Block_byref_i_0 的内存管理，所以 __main_block_desc_0 中增加了 copy 和 dispose 函数指针来修改相应变量的 retainCount 。</p>
 <h4 id="NSConcreteMallocBlock-类型的-block-的实现"><a href="#NSConcreteMallocBlock-类型的-block-的实现" class="headerlink" title="_NSConcreteMallocBlock 类型的 block 的实现"></a><code>_NSConcreteMallocBlock</code> 类型的 block 的实现</h4><p>为了解决变量作用域结束时，依然可以继续使用 block 的问题，block 提供了 copy 的功能，将 block 和 __block 修饰的变量从栈拷贝到堆。就是 __NSConcreteMallocBlock 类型的 block 。<br>__NSConcreteMallocBlock 类型的 block 通常不会在源码中直接出现。</p>
 <p>在已有结构体指针指向 __Block_byref_intValue_0 时，结构体里面多了个 __forwarding 指向自己的指针变量。访问结构体 __Block_byref_intValue_0 内部的成员变量都是通过访问 __forwarding 指针完成的。为了保证能正确访问栈上的 __block 变量，进行 copy 操作时，会将栈上的 __forwarding 指针指向了堆上的 block 结构体实例。</p>
-<h2 id="变量的复制"><a href="#变量的复制" class="headerlink" title="变量的复制"></a>变量的复制</h2><p>对于 block 外的变量引用，block 默认是将其复制到其数据结构中来实现访问的。如下图：</p>
+<h2 id="变量的复制"><a href="#变量的复制" class="headerlink" title="变量的复制"></a>变量的复制</h2><!-- 
+对于 block 外的变量引用，block 默认是将其复制到其数据结构中来实现访问的。如下图：
+![图片错误](https://github.com/star-93/star-93.github.io/blob/master/2020/06/02/Block/block-capture-1.jpg?raw=true)
+
+对于用 __block 修饰的外部变量引用，block 是复制其引用地址来实现访问的。如下图：
+![图片错误](https://github.com/star-93/star-93.github.io/blob/master/2020/06/02/Block/block-capture-2.jpg?raw=true) -->
+
+<p>在 ARC 模式大部分情况下，编译器通常会将创建在栈上的 block 自动拷贝到堆上，只有当 block 作为方法或函数的参数传递的时候，编译器不会自动调用 copy 方法。</p>
+<p><code>block 自动拷贝</code></p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">int</span> (^blk_t)(<span class="keyword">int</span>);</span><br><span class="line">blk_t func(<span class="keyword">int</span> rate) &#123;</span><br><span class="line">    <span class="keyword">return</span> ^(<span class="keyword">int</span> count)&#123;<span class="keyword">return</span> rate * count;&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从代码看<br>block 获取了外部变量 <code>rate</code> ，所以是 _NSConcreteStackBlock 类型，当 <code>func</code> 函数返回的时候，脱离了局部变量 <code>rata</code>的作用域，调用 block 时会出现问题。但开启 ARC 模式时，调用 block 为什么一切正常？</p>
+<p><code>ARC 魔法</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">blk_t</span> <span class="title">func</span><span class="params">(<span class="keyword">int</span> rate)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">blk_t</span> tmp = &amp;__func_block_impl_0(__func_block_func_0, &amp;__func_block_desc_0_DATA, rate);</span><br><span class="line">    tmp = objc_retainBlock(tmp);</span><br><span class="line">    <span class="keyword">return</span> objc_autoreleaseReturnValue(tmp); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从代码看<br>翻译后出现两个新的函数 <code>objc_retainBlock</code> 、<code>objc_autoreleaseReturnValue</code> 。<br>通过 <code>objc_retainBlock</code> 函数，block 从栈上拷贝到堆上，让 <code>tmp</code> 重新指向堆上的 block ，然后将 <code>tmp</code> 所指的堆上的 block 作为一个 Objective-C 对象放入 autoreleasepool 中，从而保证返回后的 block 仍然可以正确执行。</p>
+<h2 id="循环引用"><a href="#循环引用" class="headerlink" title="循环引用"></a>循环引用</h2><p>block 使用不得当容易出现循环引用，导致内存泄漏。</p>
+<p><code>循环引用例子</code></p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">void</span> (^blk)(<span class="keyword">void</span>);</span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">AClass</span> : <span class="title">NSObject</span> </span>&#123;</span><br><span class="line">  blk blk;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">AClass</span></span></span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)dealloc &#123;</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@"dealloc"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">instancetype</span>)init &#123;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="keyword">super</span> init];</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>) &#123;</span><br><span class="line">        blk = ^&#123;</span><br><span class="line">            <span class="built_in">NSLog</span>(<span class="string">@"self = %@"</span>, <span class="keyword">self</span>);</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">init main() &#123;</span><br><span class="line">    <span class="keyword">id</span> a = [[AClass alloc] init];</span><br><span class="line">    <span class="built_in">NSLog</span>(<span class="string">@"%@"</span>, a);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从代码看<br><code>init</code>方法中直接使用 <code>self</code>， 由于 <code>self</code> 是 <code>__strong</code> 修饰， ARC 模式下编译器自动将代码中的 block 从栈上拷贝到堆上时，block 会强引用和持有 <code>self</code>，而 <code>self</code> 恰好也强引用和持有了 block ， 所以就造成循环引用。由于循环引用，<code>main()</code> 函数结束时内存无法释放，即内存泄漏。</p>
+<p>为了避免循环引用发生，可以在变量声明的时候使用 <code>__weak</code> 修饰符修饰 <code>self</code> ，让 block 弱引用 <code>self</code> ，从而破除循环引用。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">instancetype</span>)init &#123;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="keyword">super</span> init];</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>) &#123;</span><br><span class="line">        <span class="keyword">id</span> __<span class="keyword">weak</span> wself = <span class="keyword">self</span>;</span><br><span class="line">        blk = ^&#123;</span><br><span class="line">            <span class="built_in">NSLog</span>(<span class="string">@"self = %@"</span>, wself);</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>除了使用 <code>__weak</code> 修饰符，还有一个方法破解循环引用，使用 <code>__block</code> 修饰对象，在 block 内部将对象置为 nil 即可。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">instancetype</span>)init &#123;</span><br><span class="line">    <span class="keyword">self</span> = [<span class="keyword">super</span> init];</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">self</span>) &#123;</span><br><span class="line">        __block <span class="keyword">id</span> tmp = <span class="keyword">self</span>;</span><br><span class="line">        blk = ^&#123;</span><br><span class="line">            <span class="built_in">NSLog</span>(<span class="string">@"self = %@"</span>, tmp);</span><br><span class="line">            tmp = <span class="literal">nil</span>;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用-Xcode-检测循环引用"><a href="#使用-Xcode-检测循环引用" class="headerlink" title="使用 Xcode 检测循环引用"></a>使用 Xcode 检测循环引用</h2><p>Xcode 的 Instruments 工具集可以很方便的检测循环引用。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)viewDidLoad &#123;</span><br><span class="line">    [<span class="keyword">super</span> viewDidLoad];</span><br><span class="line">    <span class="built_in">NSMutableArray</span> *a = [<span class="built_in">NSMutableArray</span> array];</span><br><span class="line">    <span class="built_in">NSMutableArray</span> *b = [<span class="built_in">NSMutableArray</span> array];</span><br><span class="line">    [a addObject:b];</span><br><span class="line">    [b addObject:a];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从代码看，<code>a</code> 和 <code>b</code> 相互引用了对方构成了循环引用。</p>
+<p>在 Xcode 的菜单栏选择： Product -&gt; Profile ，选择 “Leaks” 。模拟器会自动运行。稍等几秒就可以看到 Instruments 检测到了这次循环引用。 Instruments 中会用一个红色叉号表示一次内存泄漏的产生。视图切换到 Lakes 栏，点击 “Cycles &amp; Roots” 就可以看到以图形方式显示出来的循环引用。</p>
 
       
     </div>
@@ -165,6 +196,20 @@
   </div>
   
     
+<nav id="article-nav">
+  
+    <a href="/2020/06/03/memoryManagement/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          理解 iOS 的内存管理
+        
+      </div>
+    </a>
+  
+  
+</nav>
+
   
 </article>
 
@@ -186,7 +231,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li></ul>
     </div>
   </div>
 
@@ -196,7 +241,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签云</h3>
     <div class="widget tagcloud">
-      <a href="/tags/block/" style="font-size: 10px;">block</a>
+      <a href="/tags/block/" style="font-size: 10px;">block</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" style="font-size: 10px;">内存管理</a>
     </div>
   </div>
 
@@ -216,6 +261,10 @@
     <h3 class="widget-title">最新文章</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/06/03/memoryManagement/">理解 iOS 的内存管理</a>
+          </li>
         
           <li>
             <a href="/2020/06/02/block/">理解 block</a>
