@@ -96,58 +96,16 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://star-93.github.io/2020/06/04/weak/" data-id="ckb0hlrom00004v0o623h11ug" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-identifier" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/06/04/identifier/" class="article-date">
-  <time datetime="2020-06-03T23:45:09.000Z" itemprop="datePublished">2020-06-04</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Objective-C/">Objective-C</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/06/04/identifier/">Objective-C 基础知识</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>总结一些基础的知识。</p>
+        <p><code>weak</code> 关键字的常见场景是在 <code>delegate</code> ，<code>block</code> 和 <code>NSTimer</code> 中使用，以避免循环引用带来的内存泄漏。但 <code>weak</code> 关键字的方便之处绝不局限于避免循环引用。<br><code>weak</code> 的用处用一句话可以归纳为：弱引用。在对象释放后置为 nil ，来避免错误的内存访问。通俗地说，<code>weak</code>可以在不增加对象的引用计数的同时又使得指针的访问是安全的。</p>
         
           <p class="article-more-link">
-            <a href="/2020/06/04/identifier/#more">Read More</a>
+            <a href="/2020/06/04/weak/#more">Read More</a>
           </p>
         
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://star-93.github.io/2020/06/04/identifier/" data-id="ckb001uxx0001a00o1zzcceiy" class="article-share-link">Share</a>
+      <a data-url="https://star-93.github.io/2020/06/04/weak/" data-id="ckb0hlrom00004v0o623h11ug" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li></ul>
@@ -255,6 +213,53 @@
 
 
   
+    <article id="post-identifier" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/01/identifier/" class="article-date">
+  <time datetime="2020-05-31T23:45:09.000Z" itemprop="datePublished">2020-06-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Objective-C/">Objective-C</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/06/01/identifier/">Objective-C 基础知识</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>总结一些基础的知识。</p>
+        
+          <p class="article-more-link">
+            <a href="/2020/06/01/identifier/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://star-93.github.io/2020/06/01/identifier/" data-id="ckb001uxx0001a00o1zzcceiy" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
 
 
 </section>
@@ -311,15 +316,15 @@
           </li>
         
           <li>
-            <a href="/2020/06/04/identifier/">Objective-C 基础知识</a>
-          </li>
-        
-          <li>
             <a href="/2020/06/03/memoryManagement/">理解 iOS 的内存管理</a>
           </li>
         
           <li>
             <a href="/2020/06/02/block/">理解 block</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/01/identifier/">Objective-C 基础知识</a>
           </li>
         
       </ul>
