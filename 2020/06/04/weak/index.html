@@ -5,17 +5,17 @@
   
 
   
-  <title>理解 Objective-C 的 weak | 写点东西</title>
+  <title>理解 weak 底层实现 | 写点东西</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="weak 关键字的常见场景是在 delegate ，block 和 NSTimer 中使用，以避免循环引用带来的内存泄漏。但 weak 关键字的方便之处绝不局限于避免循环引用。weak 的用处用一句话可以归纳为：弱引用。在对象释放后置为 nil ，来避免错误的内存访问。通俗地说，weak可以在不增加对象的引用计数的同时又使得指针的访问是安全的。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="理解 Objective-C 的 weak">
+<meta property="og:title" content="理解 weak 底层实现">
 <meta property="og:url" content="https://star-93.github.io/2020/06/04/weak/index.html">
 <meta property="og:site_name" content="写点东西">
 <meta property="og:description" content="weak 关键字的常见场景是在 delegate ，block 和 NSTimer 中使用，以避免循环引用带来的内存泄漏。但 weak 关键字的方便之处绝不局限于避免循环引用。weak 的用处用一句话可以归纳为：弱引用。在对象释放后置为 nil ，来避免错误的内存访问。通俗地说，weak可以在不增加对象的引用计数的同时又使得指针的访问是安全的。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-06-04T07:56:41.000Z">
-<meta property="article:modified_time" content="2020-06-04T10:12:17.851Z">
+<meta property="article:modified_time" content="2020-06-04T10:33:59.091Z">
 <meta property="article:author" content="Xin Yang">
 <meta property="article:tag" content="基础知识">
 <meta name="twitter:card" content="summary">
@@ -89,7 +89,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      理解 Objective-C 的 weak
+      理解 weak 底层实现
     </h1>
   
 
@@ -203,7 +203,7 @@
       <ul>
         
           <li>
-            <a href="/2020/06/04/weak/">理解 Objective-C 的 weak</a>
+            <a href="/2020/06/04/weak/">理解 weak 底层实现</a>
           </li>
         
           <li>
