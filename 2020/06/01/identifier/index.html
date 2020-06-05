@@ -15,7 +15,7 @@
 <meta property="og:description" content="总结一些基础的知识。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-05-31T23:45:09.000Z">
-<meta property="article:modified_time" content="2020-06-04T10:55:54.218Z">
+<meta property="article:modified_time" content="2020-06-05T04:56:57.606Z">
 <meta property="article:author" content="Xin Yang">
 <meta property="article:tag" content="基础知识">
 <meta name="twitter:card" content="summary">
@@ -241,6 +241,49 @@
 <td align="left">深拷贝（内容拷贝）</td>
 </tr>
 </tbody></table>
+<h2 id="协议-Protocol"><a href="#协议-Protocol" class="headerlink" title="协议 - Protocol"></a>协议 - Protocol</h2><p>Objective-C 中的继承是单继承，即一个子类只能继承于一个父类。想要实现类似多重继承的效果，可以实现多个 <code>Protocol</code> 协议。任何类只要遵循了 <code>Protocol</code> 协议就相当于拥有了该 <code>Protocol</code> 协议 的所有方法声明。<br><code>Protocol</code> 定义了一个方法列表，这个方法列表中的方法可以使用 <code>@required</code> ，<code>@optional</code> 标注，以表示该方法是否是客户类必须要实现的方法。<code>Protocol</code> 本身没有实现。<br>如果父类实现了某个 <code>Protocol</code> 协议，那其子类可以完全继承其实现。一个 <code>Protocol</code> 协议可以继承其他的 <code>Protocol</code> 协议。<br><code>Protocol</code> 协议中可以 用 <code>@property</code> 声明属性。但是属性只有对应的 <code>getter</code> 和 <code>setter</code> 方法声明，并不会生成对应的成员变量。</p>
+<p><strong><code>Protocol</code> 协议的作用</strong></p>
+<ol>
+<li>定义一套公用的接口。</li>
+<li>Delegate 传值。Delegate 是 Cocoa 中常见的一种设计模式。</li>
+</ol>
+<h2 id="分类-Category"><a href="#分类-Category" class="headerlink" title="分类 - Category"></a>分类 - Category</h2><p><code>Category</code> 是一种很灵活的扩展原有类的机制，使用 <code>Category</code> 不需要访问原有类的代码，也无需继承。<br><code>Category</code> 提供了一种简单的方式来实现类的相关方法的模块化，把不同的类方法分配到不同的类文件中。这样可以保证类的原始设计规模较小，功能增加时再逐步扩展。</p>
+<p><strong>使用注意：</strong></p>
+<ol>
+<li><code>Category</code> 可以访问原始类的实例变量，但不能添加变量。如果想添加变量，可以考虑通过继承创建子类。</li>
+<li><code>Category</code> 可以但不推荐重载原始类的方法。重载后再也不能访问原来的方法。需要重载可以选择创建子类。</li>
+<li><code>Category</code> 可以不必实现所有声明的方法。只要不去调用，不会报错。</li>
+<li>如果有多个命名 <code>Category</code> 均实现了同一个方法，即出现命名冲突，那么这些方法在运行时只有一个会被调用，具体哪个被调用是不确定的。因此在给已有类添加 <code>Category</code> 时，最好加上前缀。</li>
+</ol>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">NSString</span> (<span class="title">XYZJudge</span>)</span></span><br><span class="line">+ (<span class="built_in">BOOL</span>)xyz_jundgeString:(<span class="built_in">NSString</span> *)string;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>Category</code> 给类添加属性</strong><br>添加 public 属性来增强 category 的功能。<br>Runtime 的 <code>associated object</code> 特性。<code>associated object</code> 对象关联是 Objective-C 2.0 运行时的一个特性。<br><code>&lt;objc/runtime.h&gt;</code> 中定义的以下三个允许将任何键值在运行时关联到对象上的函数：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 关联对象。类似于 `setValue:forKey` 。</span></span><br><span class="line"><span class="keyword">void</span> objc_setAssociatedObject(<span class="keyword">id</span> object, <span class="keyword">const</span> <span class="keyword">void</span> *key, <span class="keyword">id</span> value, objc_AssociationPolicy policy); </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 读取对象</span></span><br><span class="line"><span class="keyword">id</span> objc_getAssociatedObject(<span class="keyword">id</span> object, <span class="keyword">const</span> <span class="keyword">void</span> *key); </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 移除一个关联对象。依照文档，我们不应该手动调用这个函数。此函数的目的是在“初始状态”时方便地返回一个对象。不应该用这个函数来删除对象的属性，因为可能会导致其他对象对其添加的属性也被移除。规范方法是使用 `objc_setAssociatedObject` 将 `key` 指定的关联对象设置为 nil 。</span></span><br><span class="line"><span class="keyword">void</span> objc_removeAssociatedObjects(<span class="keyword">id</span> object); </span><br></pre></td></tr></table></figure>
+
+<p>相关参数<br><code>key</code> ：要保证全局唯一，<code>key</code> 与关联的对象是一一对应关系。必须全局唯一。通常用 <code>@selector(methodName)</code> 作为 <code>key</code> 。<br><code>value</code> ：要关联的对象。<br><code>policy</code> ：关联策略。是设定 <code>value</code> 在 <code>object</code> 内的额外属性。有五种关联策略。</p>
+<ul>
+<li><code>OBJC_ASSOCIATION_ASSIGN</code> 等价于 <code>@property(assign)</code> 。</li>
+<li><code>OBJC_ASSOCIATION_RETAIN_NONATOMIC</code> 等价于 <code>@property(strong, nonatomic)</code> 。</li>
+<li><code>OBJC_ASSOCIATION_RETAIN</code> 等价于 <code>@property(strong, atomic)</code> 。</li>
+<li><code>OBJC_ASSOCIATION_COPY_NONATOMIC</code> 等价于 <code>@property(copy, nonatomic)</code> 。</li>
+<li><code>OBJC_ASSOCIATION_COPY</code> 等价于 <code>@property(copy, atomic)</code> 。</li>
+</ul>
+<p><code>NSObject+AssociatedObject.h</code></p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">NSObject</span> (<span class="title">AssociatedObject</span>)</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="keyword">id</span> associatedObject;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+<p><code>NSObject+AssociatedObject.m</code></p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">NSobject</span> (<span class="title">AssociatedObject</span>)</span></span><br><span class="line"><span class="keyword">@dynamic</span> associatedObject;</span><br><span class="line">- (<span class="keyword">void</span>)setAssociatedObject:(<span class="keyword">id</span>)object &#123;</span><br><span class="line">    objc_setAssociatedObject(<span class="keyword">self</span>, <span class="keyword">@selector</span>(associatedObject), object, OBJC_ASSOCIATION_RETAIN_NONATOMIC);</span><br><span class="line">&#125;</span><br><span class="line">- (<span class="keyword">id</span>)associatedObject &#123;</span><br><span class="line">    <span class="keyword">return</span> objc_getAssocaitedObject(<span class="keyword">self</span>, <span class="keyword">@selector</span>(associatedObject));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="扩展-Extension"><a href="#扩展-Extension" class="headerlink" title="扩展 - Extension"></a>扩展 - Extension</h2><p><code>Extension</code> 可以认为是一种匿名的 <code>Category</code> 。<br><code>Extension</code> 可以声明方法、属性和成员变量。一半用于声明私有方法、私有属性和私有成员变量。<br><code>Extension</code> 无法直接为系统类扩展。因为使用 <code>Extension</code> 必须有原有类的源码。可以先创建系统类的子类再添加 <code>Extension</code> 。</p>
 
       
     </div>
@@ -266,6 +309,11 @@
     </a>
   
   
+    <a href="/2017/08/22/mergefile/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">合并库文件使其兼容真机和模拟器</div>
+    </a>
+  
 </nav>
 
   
@@ -279,7 +327,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">分类</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Objective-C/">Objective-C</a></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Objective-C/">Objective-C</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/iOS-%E5%BC%80%E5%8F%91/">iOS 开发</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></li></ul>
     </div>
   </div>
 
@@ -289,7 +337,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS-%E5%BC%80%E5%8F%91/" rel="tag">iOS 开发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/runtime/" rel="tag">runtime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%89%93%E5%8C%85/" rel="tag">打包</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" rel="tag">静态库</a></li></ul>
     </div>
   </div>
 
@@ -299,7 +347,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签云</h3>
     <div class="widget tagcloud">
-      <a href="/tags/block/" style="font-size: 10px;">block</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" style="font-size: 10px;">内存管理</a> <a href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 20px;">基础知识</a>
+      <a href="/tags/block/" style="font-size: 10px;">block</a> <a href="/tags/iOS-%E5%BC%80%E5%8F%91/" style="font-size: 20px;">iOS 开发</a> <a href="/tags/runtime/" style="font-size: 10px;">runtime</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" style="font-size: 10px;">内存管理</a> <a href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 15px;">基础知识</a> <a href="/tags/%E6%89%93%E5%8C%85/" style="font-size: 15px;">打包</a> <a href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" style="font-size: 15px;">静态库</a>
     </div>
   </div>
 
@@ -308,7 +356,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">六月 2020</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">六月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">八月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">九月 2016</a></li></ul>
     </div>
   </div>
 
@@ -319,6 +367,10 @@
     <h3 class="widget-title">最新文章</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/06/05/runtime/">理解 Objective-C 的 Runtime</a>
+          </li>
         
           <li>
             <a href="/2020/06/04/weak/">理解 weak 底层实现</a>

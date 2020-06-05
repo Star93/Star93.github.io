@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>理解 Objective-C 的 Runtime | 写点东西</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Objective-C 是一种面向对象的动态语言。动态语言是在运行时来执行静态语言的编译连接的工作。这要求除了编译器之外还要有一种运行时系统来执行编译的代码。这个运行时系统就像一个操作系统一样：他让所有的工作可以正常的运行。Objective-C 中的这个系统就是 Objc Runtime 。 Objc Runtime 其实是一个 Runtime 库，它基本上是用 C 和汇编写的。这个库使得 C">
+<meta property="og:type" content="article">
+<meta property="og:title" content="理解 Objective-C 的 Runtime">
+<meta property="og:url" content="https://star-93.github.io/2020/06/05/runtime/index.html">
+<meta property="og:site_name" content="写点东西">
+<meta property="og:description" content="Objective-C 是一种面向对象的动态语言。动态语言是在运行时来执行静态语言的编译连接的工作。这要求除了编译器之外还要有一种运行时系统来执行编译的代码。这个运行时系统就像一个操作系统一样：他让所有的工作可以正常的运行。Objective-C 中的这个系统就是 Objc Runtime 。 Objc Runtime 其实是一个 Runtime 库，它基本上是用 C 和汇编写的。这个库使得 C">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-05T05:00:52.000Z">
+<meta property="article:modified_time" content="2020-06-05T10:03:46.664Z">
+<meta property="article:author" content="Xin Yang">
+<meta property="article:tag" content="runtime">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="写点东西" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">写点东西</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">虽千万里，吾往矣。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://star-93.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-runtime" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/05/runtime/" class="article-date">
+  <time datetime="2020-06-05T05:00:52.000Z" itemprop="datePublished">2020-06-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Objective-C/">Objective-C</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      理解 Objective-C 的 Runtime
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Objective-C 是一种面向对象的动态语言。动态语言是在运行时来执行静态语言的编译连接的工作。这要求除了编译器之外还要有一种运行时系统来执行编译的代码。这个运行时系统就像一个操作系统一样：他让所有的工作可以正常的运行。Objective-C 中的这个系统就是 <code>Objc Runtime</code> 。 <code>Objc Runtime</code> 其实是一个 <code>Runtime</code> 库，它基本上是用 C 和汇编写的。这个库使得 C 语言又了面向对象的能力。</p>
+<a id="more"></a>
+
+<p><code>Runtime</code> 库主要做几件事：</p>
+<ol>
+<li>封装。在这个库中，对象可以用 C 语言中的结构体表示，而方法可以用 C 函数来实现，另外再加上了一些额外的特性。这些结构体和函数被 <code>runtime</code> 函数封装后，我们就可以在程序运行时创建，检查，修改类、对象和方法了。</li>
+<li>找出方法的最终执行代码。当程序执行 <code>[object doSomething]</code> 时会向消息接受者 <code>object</code> 发送一条消息 <code>doSomething</code> ，<code>runtime</code> 会根据消息接受者是否能响应该消息而做出不同的反应。</li>
+</ol>
+<h2 id="类与对象基础数据结构"><a href="#类与对象基础数据结构" class="headerlink" title="类与对象基础数据结构"></a>类与对象基础数据结构</h2><h3 id="Class"><a href="#Class" class="headerlink" title="Class"></a>Class</h3><p>Objective-C 类是由 <code>Class</code> 类型来表示的，它实际上是一个指向 <code>objc_class</code> 结构体的指针。它的定义如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> objc_class *Class;</span><br></pre></td></tr></table></figure>
+
+<p>查看 <code>objc/runtime.h</code> 中 <code>objc_class</code> 结构体的定义如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> objc_class &#123;</span><br><span class="line">    Class _Nonnull isa  OBJC_ISA_AVAILABILITY;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> !__OBJC2__</span></span><br><span class="line">    <span class="comment">// 父类</span></span><br><span class="line">    Class _Nullable super_class                              OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="comment">// 类名</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> * _Nonnull name                               OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="comment">// 类的版本信息 默认是 0</span></span><br><span class="line">    <span class="keyword">long</span> version                                             OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="comment">// 类信息 供运行期使用的一些位标识</span></span><br><span class="line">    <span class="keyword">long</span> info                                                OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="comment">// 类的实例变量大小</span></span><br><span class="line">    <span class="keyword">long</span> instance_size                                       OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="comment">// 类的成员变量链表</span></span><br><span class="line">    <span class="keyword">struct</span> objc_ivar_list * _Nullable ivars                  OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="comment">// 类的方法定义链表</span></span><br><span class="line">    <span class="keyword">struct</span> objc_method_list * _Nullable * _Nullable methodLists                    OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="comment">// 方法缓存</span></span><br><span class="line">    <span class="keyword">struct</span> objc_cache * _Nonnull cache                       OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="comment">// 协议链表</span></span><br><span class="line">    <span class="keyword">struct</span> objc_protocol_list * _Nullable protocols          OBJC2_UNAVAILABLE;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">&#125; OBJC2_UNAVAILABLE;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><code>isa</code> ：需要注意的是在 Objective-C 中，所有的类自身也是一个对象，这个对象的 <code>Class</code> 里面也有一个 isa 指针指向 <code>metaClass</code>（元类）。</li>
+<li><code>super_class</code> ：指向该类的父类，如果该类已经是最顶层的根类（如 <code>NSObject</code> 或 <code>NSProxy</code>），则 <code>super_class</code> 为 NULL。</li>
+<li><code>cache</code> ：用于缓存最新使用的方法。一个接受者对象接收到一个消息时，会根据 <code>isa</code> 指针去查找能够响应这个消息的对象。在实际使用中，这个对象只有一部分方法是常用的，很多方法其实很少或者根本用不上。这种情况下，如果每次来消息时，都在 <code>methodLists</code> 中遍历一遍，性能势必很差。所以每次掉用过一个方法后，这个方法就会被缓存到 <code>cache</code> 列表中，下次调用的时候 <code>runtime</code> 会优先去 <code>cache</code> 中查找。如果 <code>cache</code> 中没有才回去 <code>methidLists</code> 中查找这个方法。这样对经常调用的方法提高了效率。</li>
+<li><code>version</code> ：提供类的版本信息。这对于对象的序列化非常有用。它可以让我们识别出不同类定义版本中实例变量布局的改变。</li>
+</ol>
+<p>针对 <code>cache</code> ，举个 🌰 来说明其执行过程：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">NSArray</span> *array = [[<span class="built_in">NSArray</span> alloc] init];</span><br></pre></td></tr></table></figure>
+<ol>
+<li><code>[NSArray alloc]</code> 先被执行。因为 <code>NSArray</code> 没有 <code>+alloc</code> 方法，于是去父类 <code>NSObjcet</code> 查找。</li>
+<li>检测 <code>NSObject</code> 是否响应 <code>+alloc</code> 方法，发现响应，于是检测 <code>NSArray</code> 类并根据其所需要的内存空间大小开始分配内存空间，然后把 <code>isa</code> 指针指向 <code>NSArray</code> 类。同时 <code>+alloc</code> 也被放进 <code>cache</code> 列表中。</li>
+<li>继续执行 <code>-init</code> 方法，如果 <code>NSArray</code> 相应该方法，则直接将其加入 <code>cache</code> 列表；如果不响应则去父类查找。</li>
+<li>之后如果再以 <code>[[NSArray alloc] init]</code> 的方式来创建数组就会直接从 <code>cache</code> 列表中取出相应的方法直接调用。</li>
+</ol>
+<h3 id="objc-object-与-id"><a href="#objc-object-与-id" class="headerlink" title="objc_object 与 id"></a>objc_object 与 id</h3><p><code>objc_object</code> 是表示一个类的实例对象结构体。查看 <code>objc/runtime.h</code> 中 <code>objc_object</code> 结构体的定义如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> objc_object &#123;</span><br><span class="line">    Class _Nonnull isa  OBJC_ISA_AVAILABILITY;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这个结构体只有一个字段，即指向其类的 <code>isa</code> 指针。当我们向一个 Objective-C 对象发送消息时。<code>Runtime</code> 库会根据实例对象的 <code>isa</code> 指针找到这个实例对象所属的类。<code>Runtime</code> 库会在类的方法列表及父类的方法列表中去寻找与消息对应的 <code>selector</code> 指向的方法。找到后即运行这个方法。</p>
+<p>当创建一个特定类的实例对象时，分配的内存包含一个 <code>objc_object</code> 数据结构，然后是类的实例对象的数据。<code>NSObject</code> 类的 <code>alloc</code> 和 <code>allocWithZone:</code> 方法使用函数 <code>class_createInstance</code> 来创建 <code>objc_object</code> 数据结构。另外还有我们常见的 <code>id</code> ，它是一个 <code>objc_object</code> 结构类型的指针。它的存在可以让我们实现类似于 C++ 中泛型的一些操作。该类型的对象可以转换成为任何一种对象。类似于 C 语言中 <code>void *</code>指针类型的作用。</p>
+<h3 id="objc-cache"><a href="#objc-cache" class="headerlink" title="objc_cache"></a>objc_cache</h3><p>这是一个指向 <code>objc_cache</code> 结构体的指针。定义如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> objc_cache &#123;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> mask <span class="comment">/* total = mask + 1 */</span>                 OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> occupied                                    OBJC2_UNAVAILABLE;</span><br><span class="line">    Method _Nullable buckets[<span class="number">1</span>]                              OBJC2_UNAVAILABLE;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ol>
+<li><code>mask</code> ：一个整数，指定分配的缓存 <code>bucket</code> 的总数。在方法查找过程中，Objective-C <code>runtime</code> 使用这个字段来确定开始线性查找数组的索引位置。指向方法 <code>selector</code> 的指针与该字段做一个 <code>AND</code> 位操作 <code>(index = (mask &amp; selector))</code> 。这可以作为一个简单的 <code>hash</code> 散列算法。</li>
+<li><code>occupied</code> ：一个整数，指定实际占用的缓存 <code>bucket</code> 的总数。</li>
+<li><code>buckets</code> ：指向 <code>Method</code> 数据结构指针的数组。这个数组可能包含不超过 <code>mask+1</code> 个元素。需要注意的是，指针可能是 NULL ，表示这个缓存 <code>bucket</code> 没有被占用，另外被占用的 <code>bucket</code> 可能不是连续的。这个数组可能会随着时间而增长。</li>
+</ol>
+<h3 id="元类"><a href="#元类" class="headerlink" title="元类"></a>元类</h3><style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.0em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<!--more-->
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://star-93.github.io/2020/06/05/runtime/" data-id="ckb1r09uz0000us0oa23o278b" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/runtime/" rel="tag">runtime</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/06/04/weak/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">理解 weak 底层实现</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Objective-C/">Objective-C</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/iOS-%E5%BC%80%E5%8F%91/">iOS 开发</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS-%E5%BC%80%E5%8F%91/" rel="tag">iOS 开发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/runtime/" rel="tag">runtime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%89%93%E5%8C%85/" rel="tag">打包</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" rel="tag">静态库</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/block/" style="font-size: 10px;">block</a> <a href="/tags/iOS-%E5%BC%80%E5%8F%91/" style="font-size: 20px;">iOS 开发</a> <a href="/tags/runtime/" style="font-size: 10px;">runtime</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" style="font-size: 10px;">内存管理</a> <a href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 15px;">基础知识</a> <a href="/tags/%E6%89%93%E5%8C%85/" style="font-size: 15px;">打包</a> <a href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" style="font-size: 15px;">静态库</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">六月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">八月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">九月 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/06/05/runtime/">理解 Objective-C 的 Runtime</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/04/weak/">理解 weak 底层实现</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/03/memoryManagement/">理解 iOS 的内存管理</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/02/block/">理解 block</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/01/identifier/">Objective-C 基础知识</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 Xin Yang<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

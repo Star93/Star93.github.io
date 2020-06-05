@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>iOS 打包静态库 | 写点东西</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="最近由于公司业务需要，要求封装一个 SDK 供外部使用。这篇博客记录打包过程以及一些问题。本质上说，库就是一段编译好的、可执行的二进制代码，加上头文件可以被载入内存中执行。开发过程中有时有些代码写好后不再进行大改动，这样的代码通常会被编译成库方便使用，节约时间；还有些代码要给外部使用，出于安全性考虑又不希望外部能看到源码，也会封装成库，只露出头文件供外部使用。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 打包静态库">
+<meta property="og:url" content="https://star-93.github.io/2017/08/22/package/index.html">
+<meta property="og:site_name" content="写点东西">
+<meta property="og:description" content="最近由于公司业务需要，要求封装一个 SDK 供外部使用。这篇博客记录打包过程以及一些问题。本质上说，库就是一段编译好的、可执行的二进制代码，加上头文件可以被载入内存中执行。开发过程中有时有些代码写好后不再进行大改动，这样的代码通常会被编译成库方便使用，节约时间；还有些代码要给外部使用，出于安全性考虑又不希望外部能看到源码，也会封装成库，只露出头文件供外部使用。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503374322961.jpg?imageMogr2/thumbnail/!40p">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503375064727.jpg">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503381667646.jpg?imageMogr2/thumbnail/!40p">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503381698031.jpg?imageMogr2/thumbnail/!40p">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503382434869.jpg?imageMogr2/thumbnail/!60p">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503382823752.jpg">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503383661493.jpg">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503383843090.jpg">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503384295669.jpg">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503384712006.jpg">
+<meta property="og:image" content="http://o7aty6fkw.bkt.clouddn.com/1503385259368.jpg?imageMogr2/thumbnail/!40p">
+<meta property="article:published_time" content="2017-08-22T02:42:35.000Z">
+<meta property="article:modified_time" content="2020-06-05T00:19:07.314Z">
+<meta property="article:author" content="Xin Yang">
+<meta property="article:tag" content="iOS 开发">
+<meta property="article:tag" content="打包">
+<meta property="article:tag" content="静态库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://o7aty6fkw.bkt.clouddn.com/1503374322961.jpg?imageMogr2/thumbnail/!40p">
+  
+    <link rel="alternate" href="/atom.xml" title="写点东西" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">写点东西</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">虽千万里，吾往矣。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://star-93.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-package" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/08/22/package/" class="article-date">
+  <time datetime="2017-08-22T02:42:35.000Z" itemprop="datePublished">2017-08-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      iOS 打包静态库
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近由于公司业务需要，要求封装一个 SDK 供外部使用。这篇博客记录打包过程以及一些问题。<br>本质上说，库就是一段编译好的、可执行的二进制代码，加上头文件可以被载入内存中执行。<br>开发过程中有时有些代码写好后不再进行大改动，这样的代码通常会被编译成库方便使用，节约时间；还有些代码要给外部使用，出于安全性考虑又不希望外部能看到源码，也会封装成库，只露出头文件供外部使用。</p>
+<a id="more"></a>
+
+<h2 id="库分类"><a href="#库分类" class="headerlink" title="库分类"></a>库分类</h2><p>根据链接形式的不同，库又被分为静态库和动态库。</p>
+<ul>
+<li><h4 id="静态库"><a href="#静态库" class="headerlink" title="静态库"></a>静态库</h4>存在 .a 和 .framework 两种形式。<br>.a 是纯二进制文件，.framework 中除了二进制文件外还有资源文件。<br>.a + .h + 资源文件 = .framework 。<br>项目编译的时候会被拷贝一份编译到目标程序中。<br>目标程序二进制文件较大。<br>静态库中不能包含其他静态库，减少耦合性，保证独立。</li>
+</ul>
+<ul>
+<li><h4 id="动态库"><a href="#动态库" class="headerlink" title="动态库"></a>动态库</h4>存在 .dylib ，.tbd 和 .framework 三种形式。<br>xcode7 之后 .dylib 都被替换成了 .tbd 。<br>库不会拷贝到目标程序中，当需要使用的时候会动态从 iOS 系统中加载。<br>节省了目标程序二进制文件的体积。<br>动态库在制作的时候可以直接包含静态库，也能自动链接所需要的依赖库。</li>
+</ul>
+<p>** 关于动态库要搞清楚一点，我们自己制作的动态库与系统动态库的区别，我们自己制作的动态库引入 App 项目的时候需要 embed 进项目，也就是要拷贝到目标程序中，这就有点不像动态库的特性了，苹果这么做也是考虑安全问题吧！ **</p>
+<h2 id="库创建"><a href="#库创建" class="headerlink" title="库创建"></a>库创建</h2><ul>
+<li>Xcode -&gt; create a new project -&gt; Framework &amp; Library -&gt; Cocoa Touch Framework<br><img src="http://o7aty6fkw.bkt.clouddn.com/1503374322961.jpg?imageMogr2/thumbnail/!40p" alt="图1"></li>
+<li>这个头文件是所有 public 头文件的集合。<br><img src="http://o7aty6fkw.bkt.clouddn.com/1503375064727.jpg" alt="图2"></li>
+<li>创建一个测试类写个求和函数。<br><img src="http://o7aty6fkw.bkt.clouddn.com/1503381667646.jpg?imageMogr2/thumbnail/!40p" alt="图3"><br><img src="http://o7aty6fkw.bkt.clouddn.com/1503381698031.jpg?imageMogr2/thumbnail/!40p" alt="图3"></li>
+<li>把测试类的头文件放进 public 组以供外部使用。<br><img src="http://o7aty6fkw.bkt.clouddn.com/1503382434869.jpg?imageMogr2/thumbnail/!60p" alt="图4"></li>
+<li>将 .h 文件引入 framework.h 中。<br><img src="http://o7aty6fkw.bkt.clouddn.com/1503382823752.jpg" alt="图5"></li>
+<li>将 Build Active Architecture Only 属性设置为 NO 。<br>设置为 no ，会编译所有的版本。<br>设置为 yes，是为了 debug 的时候编译速度更快，它只编译当前的 architecture 版本。<br><img src="http://o7aty6fkw.bkt.clouddn.com/1503383661493.jpg" alt="图6"></li>
+<li>将 Mach-O Type 设置为静态库类型。<br><img src="http://o7aty6fkw.bkt.clouddn.com/1503383843090.jpg" alt="图7"></li>
+<li>打包静态库。由于模拟器和真机架构不同，需要选择运行在哪个环境下。<br>这篇博客讲模拟器和真机的不同架构以及如何合并库文件使其兼容真机和模拟器：<br><img src="http://o7aty6fkw.bkt.clouddn.com/1503384295669.jpg" alt="图8"></li>
+<li>运行 cmd + r 打包静态库。打开 framework 文件夹。Header 文件夹中看到外部使用的头文件。<br><img src="http://o7aty6fkw.bkt.clouddn.com/1503384712006.jpg" alt="图9"></li>
+<li>新建一个工程将 .framework 文件导入工程。在需要的地方导入头文件就可以使用了。<br><img src="http://o7aty6fkw.bkt.clouddn.com/1503385259368.jpg?imageMogr2/thumbnail/!40p" alt="图10"></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://star-93.github.io/2017/08/22/package/" data-id="ckb1gnabt00007a0og6oq7ogs" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/iOS-%E5%BC%80%E5%8F%91/" rel="tag">iOS 开发</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%89%93%E5%8C%85/" rel="tag">打包</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" rel="tag">静态库</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/08/22/mergefile/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          合并库文件使其兼容真机和模拟器
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/09/17/iOS10adaptive/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">iOS 10 适配总结</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Objective-C/">Objective-C</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/iOS-%E5%BC%80%E5%8F%91/">iOS 开发</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS-%E5%BC%80%E5%8F%91/" rel="tag">iOS 开发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/runtime/" rel="tag">runtime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%89%93%E5%8C%85/" rel="tag">打包</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" rel="tag">静态库</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/block/" style="font-size: 10px;">block</a> <a href="/tags/iOS-%E5%BC%80%E5%8F%91/" style="font-size: 20px;">iOS 开发</a> <a href="/tags/runtime/" style="font-size: 10px;">runtime</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" style="font-size: 10px;">内存管理</a> <a href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 15px;">基础知识</a> <a href="/tags/%E6%89%93%E5%8C%85/" style="font-size: 15px;">打包</a> <a href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" style="font-size: 15px;">静态库</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">六月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">八月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">九月 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/06/05/runtime/">理解 Objective-C 的 Runtime</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/04/weak/">理解 weak 底层实现</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/03/memoryManagement/">理解 iOS 的内存管理</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/02/block/">理解 block</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/01/identifier/">Objective-C 基础知识</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 Xin Yang<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
