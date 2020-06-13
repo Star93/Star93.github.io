@@ -70,6 +70,117 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-interviewquestions" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/13/interviewquestions/" class="article-date">
+  <time datetime="2020-06-13T05:29:19.000Z" itemprop="datePublished">2020-06-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/06/13/interviewquestions/">面试题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<p><strong>1. 什么是设计模式？</strong><br>设计模式是一套被反复使用、多数人知晓、经过分类编目的代码设计经验的总结。简单理解为写代码的套路和模版。（创建型 结构型 行为型）。</p>
+<p><strong>2. 项目中使用过哪些设计模式？</strong></p>
+<ul>
+<li>工厂方法：工厂父类负责定义创建产品对象的公共接口，而工厂子类则负责生成具体的产品对象，即通过不同的工厂子类来创建不同的产品对象。简化类的初始化过程。</li>
+<li>单例：确保一个类只有一个实例变量，并提供一个全局访问点。<code>[NSNotificationCenter defaultCenter]</code>、<code>[NSUserDefaults standardUserDefaults]</code> 等。优点 延迟加载、节省内存。注意使用 <code>@synchronized</code>、<code>dispatch_once</code> 保证线程安全。</li>
+<li>代理：为某个对象提供一个代理对象并由这个代理对象控制对原对象的访问。降低代码耦合度。<code>Objective-C</code> 中通常使用 <code>protocol</code> 实现。</li>
+<li>观察者：定义对象间的一种一对多的依赖关系，使得每当一个对象的状态发生改变时，其相关依赖对象都可以得到通知并做相应的针对处理。<code>KVO</code>、<code>Notification</code> 。列表滚动偏移量变化监听、网络变化监听。</li>
+</ul>
+<p><strong>3. 比较 <code>MVC</code> 、<code>MVP</code> 、<code>MVVM</code></strong></p>
+<ul>
+<li><code>MVC（Model-View-Controller）</code>：<br>优点：代码总量少；简单易懂。大部分的代码逻辑放在 <code>C</code> ，<code>M</code> 和 <code>V</code> 严格区分。代码分配遵循一定的规则。<br>缺点：业务逻辑和视图逻辑混在一起。代码过于集中、测试难度大、可扩展性弱、网络请求层无处安放。</li>
+<li><code>MVP（Model-View-Presenter）</code>：<br><code>P</code> 负责业务逻辑。是 <code>M</code> 和 <code>V</code> 的桥接。<br>优点：耦合度降低、代码分配合理、测试方便。<br>缺点：<code>V</code> 的所有交互都要传给 <code>P</code> 处理。一旦功能增加，<code>V</code> 和 <code>P</code> 的代码量会翻倍增加，维护成本大。</li>
+<li><code>MVVM（Model-View-ViewModel）</code>：<br><code>VM</code> 持有 <code>M</code> 。完全独立于视图 <code>V</code>，<code>V</code> 持有 <code>VM</code>，通过绑定属性自动进行更新。全部操作由响应式逻辑框架自动完成。<br>优点：分离了业务逻辑和视图逻辑。代码耦合度低、代码量合理。<br>缺点：需要引入第三方响应式框架，因为属性观察环环相扣调用栈很大，<code>DEBUG</code> 尤为痛苦。</li>
+</ul>
+<p><strong>4. <code>#import</code> <code>#include</code> 和 <code>@class</code> 有什么区别？</strong><br><code>#import</code> 是 <code>Objective-C</code> 导入头文件的关键字。不会重复导入。<code>#import&lt;&gt;</code> 引入的是系统库的文件；<code>#import&quot;&quot;</code> 引入的是本地工程文件。<br><code>#include</code> 是 <code>C/C++</code> 导入头文件的关键字。<br><code>@class</code> 告诉编译器需要知道某个类的声明，解决头文件的相互包含问题。</p>
+<p><strong>5. <code>Objective-C</code> 的类是否可以多重继承？</strong><br><code>Objective-C</code> 是单继承。可以用协议来代替多继承。可以实现多个接口。</p>
+<p><strong>6. <code>Protocol</code> 是什么？</strong><br>一系列不属于任何类的方法列表。这些方法可以被任何类实现。通过 <code>Protocol</code> 定义各种行为，在不同的场景采用不同的实现方式。一些类之间没有继承关系但又具备某些相同的行为就可以使用协议。</p>
+<p><strong>6. <code>Category</code> 是什么？</strong><br><code>Category</code> 是一种灵活的扩展原有类的机制。使用分类无需访问原有类的代码，也不需要继承。<code>Category</code> 提供了一种简单的方式来实现类的相关方法的模块化。</p>
+<p><strong>7. <code>Extension</code> 是什么？</strong><br>类的扩展、延展。也叫匿名 <code>Category</code> 。</p>
+<p><strong>8. <code>Category</code> 和 <code>Extension</code> 的区别？</strong><br>使用扩展必须有原有类的源码。可以为系统类添加分类。<br>使用扩展可以添加属性和实例变量。理论上分类不能添加属性但可以通过 <code>runtime</code> 关联对象实现。<br>类别有名字、扩展没有。<br>扩展在编译时期决议，分类在运行时期决议。</p>
+<p><strong>9. <code>@property</code> 的本质是什么？ <code>ivar</code> 、<code>getter</code> 、<code>setter</code> 是如何生成并添加到类中的？</strong><br><code>@property = ivar + getter + setter</code><br><code>@property</code> 封装对象中的数据。<br><code>ivar</code> 、<code>getter</code> 、<code>setter</code> 是自动合成的。<br>使用 @property 创建一个属性时，编译器会自动编写访问这些属性所需要的方法这个过程就是自动合成。</p>
+<p><strong>10. <code>@property</code> 中有哪些属性关键字以及作用？</strong><br><code>atomic</code> 一定程度上保证线程安全。<br><code>readwrite</code> 可读写。生成 <code>getter</code> <code>setter</code> 。<br><code>readonly</code> 只读。生成 <code>getter</code> 。<br><code>assign</code> 直接赋值。一般用于基本数据类型。<br><code>retain</code> <code>mrc</code> 持有特性 引用计数加 1 。<br><code>strong</code> <code>arc</code> 同 <code>retain</code> 。<br><code>weak</code> 弱引用。类似于 <code>assign</code> 但是 weak 修饰的对象会在销毁时被置为 nil 。<br><code>copy</code> 拷贝特性。<code>setter</code> 方法将之前的对象 <code>relese</code> 再将传入的对象复制一份。<br><code>getter=</code> <code>setter=</code> 自定义 <code>getter</code> <code>setter</code> 方法的方法名。</p>
+<p><strong>11. 什么情况使用 <code>weak</code> 关键字，相比 <code>assign</code> 有什么不同？</strong><br><code>weak</code> 只能用来修饰 <code>Objective-C</code> 对象；<code>assign</code> 一般用来修饰基本数据类型。<code>assign</code> 修饰的对象被释放后，指针的地址依然存在造成野指针。<code>weak</code> 修饰的属性则会被置为 <code>nil</code> 。</p>
+<p><strong>12. <code>copy</code> 和 <code>strong</code> 有什么不同？</strong><br><code>strong</code> 的赋值是多个指针指向同一个地址。<code>copy</code> 是每次会在内存中复制一份对象，指针指向不同的地址。</p>
+<p><strong>13. 为什么要用 <code>copy</code> 修饰有对应可变类型的不可变对象而不用 <code>strong</code> ？</strong><br>因为有对应的可变类型所以两者之间可能进行赋值操作，即把可变的对象赋值给不可变的对象，为了确保对象的值不会跟着赋值对象变动就要在赋值时使用 <code>copy</code> ，让两者指向不同的内存地址。<br><code>copy</code> 目的是为了让本对象不受外界的影响。</p>
+<p><strong>14. 深拷贝和浅拷贝的区别？</strong><br>浅拷贝：副本和原对象指向同一个地址。原对象的引用计数加 1 。<br>深拷贝：副本指向的新的地址。原对象的引用计数不变。副本的引用计数加 1 。</p>
+<p><strong>15. <code>Objective-C</code> 的内存管理</strong><br>内存管理是指软件运行时对计算机内存资源的分配和使用的技术。目的是高效、快速的分配，并且在适当的时候释放和回收内存资源。<br>手动引用计数 通过引用计数的方式判断对象是否需要释放。需要开发者手动添加内存管理代码。<br>自动引用计数 也是通过引用计数的方式 只是编译器会在适当的地方自动帮我们加上内存管理代码。<br>自动内存释放池 把需要释放的对象统一放在一个释放池子中，当池子作用域结束池子中的所有的内存空间也被自动释放掉。</p>
+<p><strong>16. <code>UIViewController</code> 的完整生命周期</strong><br><code>initWithCoder</code> 通过 <code>nib</code> 文件初始化时触发。<br><code>awakeFromNib</code> <code>nib</code> 文件被加载的时候会发生一个 <code>awakeFromNib</code> 的消息到 <code>nib</code> 文件中的每个对象。<br><code>loadView</code> 开始加载视图控制器自带的 <code>view</code> 。<br><code>viewDidLoad</code> 视图控制器的 <code>view</code> 被加载完成。<br><code>viewwillAppear</code> 视图控制器将要显示在 <code>window</code> 上。<br><code>updateViewConstrains</code> 视图控制器的 <code>view</code> 开始更新 <code>AutoLayout</code> 约束。<br><code>viewWillLayoutSubviews</code> 视图控制器的 <code>view</code> 将要更新内容视图的位置。<br><code>viewDidLayoutSubviews</code> 视图控制器的 <code>view</code> 已经更新视图的位置。<br><code>viewDidAppear</code> 视图控制器已经展示在 <code>window</code> 上。<br><code>viewWillDisappear</code> 视图控制器的 <code>view</code> 将要从 <code>window</code> 上消失。<br><code>viewDidDisappear</code> 视图控制器的 <code>view</code> 已经从 <code>window</code> 上消失。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://star-93.github.io/2020/06/13/interviewquestions/" data-id="ckbd8lnch0000q10o6br709rx" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-thread" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/10/thread/" class="article-date">
+  <time datetime="2020-06-10T01:52:51.000Z" itemprop="datePublished">2020-06-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/06/10/thread/">thread</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://star-93.github.io/2020/06/10/thread/" data-id="ckb8p7x6j00000a0o27mt0z0f" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-designpatterns" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/06/08/designpatterns/" class="article-date">
@@ -215,7 +326,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><code>weak</code> 关键字的常见场景是在 <code>delegate</code> ，<code>block</code> 和 <code>NSTimer</code> 中使用，以避免循环引用带来的内存泄漏。但 <code>weak</code> 关键字的方便之处绝不局限于避免循环引用。<br><code>weak</code> 的用处用一句话可以归纳为：弱引用。在对象释放后置为 nil ，来避免错误的内存访问。通俗地说，<code>weak</code>可以在不增加对象的引用计数的同时又使得指针的访问是安全的。</p>
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<p><code>weak</code> 关键字的常见场景是在 <code>delegate</code> ，<code>block</code> 和 <code>NSTimer</code> 中使用，以避免循环引用带来的内存泄漏。但 <code>weak</code> 关键字的方便之处绝不局限于避免循环引用。<br><code>weak</code> 的用处用一句话可以归纳为：弱引用。在对象释放后置为 nil ，来避免错误的内存访问。通俗地说，<code>weak</code>可以在不增加对象的引用计数的同时又使得指针的访问是安全的。</p>
         
           <p class="article-more-link">
             <a href="/2020/06/04/weak/#more">Read More</a>
@@ -262,7 +384,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>内存管理是指软件运行时对计算机内存资源的分配和使用的技术。目的是高效、快速的分配，并且在适当的时候释放和回收内存资源。<br>在 iOS 5 之前，内存管理是令人恐惧的主题，需要花大力气去理解并规划这个部分。需要细致处理引用计数，使用 <code>retain</code>、<code>release</code> 和 <code>autorelease</code> 让应用能够明智的处理内存使用，并在大多数时候不会崩溃。<br>随着 Apple 引入自动引用计数（Automatic Reference Counting, ARC）特性，我们不再需要花大量的时间去处理引用计数，系统帮我们解决了引用计数的大部分问题。ARC 背后的原理是依赖编译器的静态分析能力，通过在编译时找出合理的位置插入引用计数代码，从而彻底解放程序员。虽然 ARC 帮我们解决了绝大部分引用计数的问题，但还是需要理解引用计数这种内存管理的方式，只有这样才能处理好内存管理的相关问题。</p>
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<p>内存管理是指软件运行时对计算机内存资源的分配和使用的技术。目的是高效、快速的分配，并且在适当的时候释放和回收内存资源。<br>在 iOS 5 之前，内存管理是令人恐惧的主题，需要花大力气去理解并规划这个部分。需要细致处理引用计数，使用 <code>retain</code>、<code>release</code> 和 <code>autorelease</code> 让应用能够明智的处理内存使用，并在大多数时候不会崩溃。<br>随着 Apple 引入自动引用计数（Automatic Reference Counting, ARC）特性，我们不再需要花大量的时间去处理引用计数，系统帮我们解决了引用计数的大部分问题。ARC 背后的原理是依赖编译器的静态分析能力，通过在编译时找出合理的位置插入引用计数代码，从而彻底解放程序员。虽然 ARC 帮我们解决了绝大部分引用计数的问题，但还是需要理解引用计数这种内存管理的方式，只有这样才能处理好内存管理的相关问题。</p>
         
           <p class="article-more-link">
             <a href="/2020/06/03/memoryManagement/#more">Read More</a>
@@ -309,7 +442,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>block 是 Objective-C 中对闭包的实现。什么是闭包：</p>
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<p>block 是 Objective-C 中对闭包的实现。什么是闭包：</p>
 <p><code>In programming languages, a closure is a function or reference to a function together with a referencing environment—a table storing a reference to each of the non-local variables (also called free variables or upvalues) of that function.</code></p>
 <p>翻译：闭包是一个函数（或指向函数的指针），再加上该函数执行的外部的上下文变量（有时候也称作自由变量）。<br>block 即代码块，将统一逻辑的代码放在一个块中，是一段封装好的代码。<br>使用 block 可以使代码更简洁紧凑，易于阅读， 比函数使用更加方便，代码更美观。</p>
         
@@ -358,7 +502,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>总结一些基础的知识。</p>
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<p>总结一些基础的知识。</p>
         
           <p class="article-more-link">
             <a href="/2020/06/01/identifier/#more">Read More</a>
@@ -405,7 +560,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>上一篇介绍了库还有打包静态库的流程，这篇主要记录下真机和模拟器的 CPU 架构。以及将打包的静态库（真机版和模拟器版）合并。</p>
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<p>上一篇介绍了库还有打包静态库的流程，这篇主要记录下真机和模拟器的 CPU 架构。以及将打包的静态库（真机版和模拟器版）合并。</p>
         
           <p class="article-more-link">
             <a href="/2017/08/22/mergefile/#more">Read More</a>
@@ -452,7 +618,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>最近由于公司业务需要，要求封装一个 SDK 供外部使用。这篇博客记录打包过程以及一些问题。<br>本质上说，库就是一段编译好的、可执行的二进制代码，加上头文件可以被载入内存中执行。<br>开发过程中有时有些代码写好后不再进行大改动，这样的代码通常会被编译成库方便使用，节约时间；还有些代码要给外部使用，出于安全性考虑又不希望外部能看到源码，也会封装成库，只露出头文件供外部使用。</p>
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<p>最近由于公司业务需要，要求封装一个 SDK 供外部使用。这篇博客记录打包过程以及一些问题。<br>本质上说，库就是一段编译好的、可执行的二进制代码，加上头文件可以被载入内存中执行。<br>开发过程中有时有些代码写好后不再进行大改动，这样的代码通常会被编译成库方便使用，节约时间；还有些代码要给外部使用，出于安全性考虑又不希望外部能看到源码，也会封装成库，只露出头文件供外部使用。</p>
         
           <p class="article-more-link">
             <a href="/2017/08/22/package/#more">Read More</a>
@@ -473,64 +650,12 @@
 
 
   
-    <article id="post-iOS10adaptive" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2016/09/17/iOS10adaptive/" class="article-date">
-  <time datetime="2016-09-17T02:06:31.000Z" itemprop="datePublished">2016-09-17</time>
-</a>
+
+
+  <nav id="page-nav">
     
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/iOS-%E5%BC%80%E5%8F%91/">iOS 开发</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/09/17/iOS10adaptive/">iOS 10 适配总结</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>随着 iOS 10 的发布，项目都需要适配 iOS 10 ，总结一些关于 iOS 10 适配方面的问题。</p>
-<ul>
-<li>App Transport Security</li>
-<li>隐私权限</li>
-<li>判断系统版本</li>
-<li>AppStore 审核规则</li>
-<li>Xcode 8 插件不能用的问题</li>
-<li>Xcode 8 打印 Log</li>
-<li>UIScrollView 新增 refreshControl</li>
-<li>UIColor 新增方法</li>
-</ul>
-        
-          <p class="article-more-link">
-            <a href="/2016/09/17/iOS10adaptive/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://star-93.github.io/2016/09/17/iOS10adaptive/" data-id="ckb1ejn7o00002d0o6ijlaq5d" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/iOS-%E5%BC%80%E5%8F%91/" rel="tag">iOS 开发</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">下一页 &amp;raquo;</a>
+  </nav>
 
 </section>
         
@@ -582,6 +707,14 @@
       <ul>
         
           <li>
+            <a href="/2020/06/13/interviewquestions/">面试题</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/10/thread/">thread</a>
+          </li>
+        
+          <li>
             <a href="/2020/06/08/designpatterns/">面向对象的设计模式</a>
           </li>
         
@@ -591,14 +724,6 @@
         
           <li>
             <a href="/2020/06/04/weak/">理解 weak 底层实现</a>
-          </li>
-        
-          <li>
-            <a href="/2020/06/03/memoryManagement/">理解 iOS 的内存管理</a>
-          </li>
-        
-          <li>
-            <a href="/2020/06/02/block/">理解 block</a>
           </li>
         
       </ul>

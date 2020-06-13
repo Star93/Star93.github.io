@@ -7,15 +7,15 @@
   
   <title>理解 weak 底层实现 | 写点东西</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="weak 关键字的常见场景是在 delegate ，block 和 NSTimer 中使用，以避免循环引用带来的内存泄漏。但 weak 关键字的方便之处绝不局限于避免循环引用。weak 的用处用一句话可以归纳为：弱引用。在对象释放后置为 nil ，来避免错误的内存访问。通俗地说，weak可以在不增加对象的引用计数的同时又使得指针的访问是安全的。">
+  <meta name="description" content="p {         font-family: &#39;Lato&#39;, &#39;PingFang SC&#39;, &#39;Microsoft YaHei&#39;, sans-serif;         font-size: 1.15em;     }     .article-entry p,     .article-entry table     .article-entry ul, .widget ul, .">
 <meta property="og:type" content="article">
 <meta property="og:title" content="理解 weak 底层实现">
 <meta property="og:url" content="https://star-93.github.io/2020/06/04/weak/index.html">
 <meta property="og:site_name" content="写点东西">
-<meta property="og:description" content="weak 关键字的常见场景是在 delegate ，block 和 NSTimer 中使用，以避免循环引用带来的内存泄漏。但 weak 关键字的方便之处绝不局限于避免循环引用。weak 的用处用一句话可以归纳为：弱引用。在对象释放后置为 nil ，来避免错误的内存访问。通俗地说，weak可以在不增加对象的引用计数的同时又使得指针的访问是安全的。">
+<meta property="og:description" content="p {         font-family: &#39;Lato&#39;, &#39;PingFang SC&#39;, &#39;Microsoft YaHei&#39;, sans-serif;         font-size: 1.15em;     }     .article-entry p,     .article-entry table     .article-entry ul, .widget ul, .">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-06-04T07:56:41.000Z">
-<meta property="article:modified_time" content="2020-06-04T10:33:59.091Z">
+<meta property="article:modified_time" content="2020-06-10T01:46:53.985Z">
 <meta property="article:author" content="Xin Yang">
 <meta property="article:tag" content="基础知识">
 <meta name="twitter:card" content="summary">
@@ -97,7 +97,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><code>weak</code> 关键字的常见场景是在 <code>delegate</code> ，<code>block</code> 和 <code>NSTimer</code> 中使用，以避免循环引用带来的内存泄漏。但 <code>weak</code> 关键字的方便之处绝不局限于避免循环引用。<br><code>weak</code> 的用处用一句话可以归纳为：弱引用。在对象释放后置为 nil ，来避免错误的内存访问。通俗地说，<code>weak</code>可以在不增加对象的引用计数的同时又使得指针的访问是安全的。</p>
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<p><code>weak</code> 关键字的常见场景是在 <code>delegate</code> ，<code>block</code> 和 <code>NSTimer</code> 中使用，以避免循环引用带来的内存泄漏。但 <code>weak</code> 关键字的方便之处绝不局限于避免循环引用。<br><code>weak</code> 的用处用一句话可以归纳为：弱引用。在对象释放后置为 nil ，来避免错误的内存访问。通俗地说，<code>weak</code>可以在不增加对象的引用计数的同时又使得指针的访问是安全的。</p>
 <a id="more"></a>
 
 <h2 id="weak-原理分析"><a href="#weak-原理分析" class="headerlink" title="weak 原理分析"></a>weak 原理分析</h2><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSObject</span> *obj = [[<span class="built_in">NSObject</span> alloc] init];</span><br><span class="line">    <span class="keyword">id</span> __<span class="keyword">weak</span> weakObj = obj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -212,6 +223,14 @@
       <ul>
         
           <li>
+            <a href="/2020/06/13/interviewquestions/">面试题</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/10/thread/">thread</a>
+          </li>
+        
+          <li>
             <a href="/2020/06/08/designpatterns/">面向对象的设计模式</a>
           </li>
         
@@ -221,14 +240,6 @@
         
           <li>
             <a href="/2020/06/04/weak/">理解 weak 底层实现</a>
-          </li>
-        
-          <li>
-            <a href="/2020/06/03/memoryManagement/">理解 iOS 的内存管理</a>
-          </li>
-        
-          <li>
-            <a href="/2020/06/02/block/">理解 block</a>
           </li>
         
       </ul>
