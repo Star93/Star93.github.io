@@ -104,19 +104,8 @@
     }
 </style>
 <p><strong>1. 什么是设计模式？</strong><br>设计模式是一套被反复使用、多数人知晓、经过分类编目的代码设计经验的总结。简单理解为写代码的套路和模版。（创建型 结构型 行为型）。</p>
-<p><strong>2. 项目中使用过哪些设计模式？</strong></p>
-<ul>
-<li>工厂方法：工厂父类负责定义创建产品对象的公共接口，而工厂子类则负责生成具体的产品对象，即通过不同的工厂子类来创建不同的产品对象。简化类的初始化过程。</li>
-<li>单例：确保一个类只有一个实例变量，并提供一个全局访问点。<code>[NSNotificationCenter defaultCenter]</code>、<code>[NSUserDefaults standardUserDefaults]</code> 等。优点 延迟加载、节省内存。注意使用 <code>@synchronized</code>、<code>dispatch_once</code> 保证线程安全。</li>
-<li>代理：为某个对象提供一个代理对象并由这个代理对象控制对原对象的访问。降低代码耦合度。<code>Objective-C</code> 中通常使用 <code>protocol</code> 实现。</li>
-<li>观察者：定义对象间的一种一对多的依赖关系，使得每当一个对象的状态发生改变时，其相关依赖对象都可以得到通知并做相应的针对处理。<code>KVO</code>、<code>Notification</code> 。列表滚动偏移量变化监听、网络变化监听。</li>
-</ul>
-<p><strong>3. 比较 <code>MVC</code> 、<code>MVP</code> 、<code>MVVM</code></strong></p>
-<ul>
-<li><code>MVC（Model-View-Controller）</code>：<br>优点：代码总量少；简单易懂。大部分的代码逻辑放在 <code>C</code> ，<code>M</code> 和 <code>V</code> 严格区分。代码分配遵循一定的规则。<br>缺点：业务逻辑和视图逻辑混在一起。代码过于集中、测试难度大、可扩展性弱、网络请求层无处安放。</li>
-<li><code>MVP（Model-View-Presenter）</code>：<br><code>P</code> 负责业务逻辑。是 <code>M</code> 和 <code>V</code> 的桥接。<br>优点：耦合度降低、代码分配合理、测试方便。<br>缺点：<code>V</code> 的所有交互都要传给 <code>P</code> 处理。一旦功能增加，<code>V</code> 和 <code>P</code> 的代码量会翻倍增加，维护成本大。</li>
-<li><code>MVVM（Model-View-ViewModel）</code>：<br><code>VM</code> 持有 <code>M</code> 。完全独立于视图 <code>V</code>，<code>V</code> 持有 <code>VM</code>，通过绑定属性自动进行更新。全部操作由响应式逻辑框架自动完成。<br>优点：分离了业务逻辑和视图逻辑。代码耦合度低、代码量合理。<br>缺点：需要引入第三方响应式框架，因为属性观察环环相扣调用栈很大，<code>DEBUG</code> 尤为痛苦。</li>
-</ul>
+<p><strong>2. 项目中使用过哪些设计模式？</strong><br><strong>工厂方法</strong>：工厂父类负责定义创建产品对象的公共接口，而工厂子类则负责生成具体的产品对象，即通过不同的工厂子类来创建不同的产品对象。简化类的初始化过程。<br><strong>单例</strong>：确保一个类只有一个实例变量，并提供一个全局访问点。<code>[NSNotificationCenter defaultCenter]</code>、<code>[NSUserDefaults standardUserDefaults]</code> 等。优点 延迟加载、节省内存。注意使用 <code>@synchronized</code>、<code>dispatch_once</code> 保证线程安全。<br><strong>代理</strong>：为某个对象提供一个代理对象并由这个代理对象控制对原对象的访问。降低代码耦合度。<code>Objective-C</code> 中通常使用 <code>protocol</code> 实现。<br><strong>观察者</strong>：定义对象间的一种一对多的依赖关系，使得每当一个对象的状态发生改变时，其相关依赖对象都可以得到通知并做相应的针对处理。<code>KVO</code>、<code>Notification</code> 。列表滚动偏移量变化监听、网络变化监听。</p>
+<p><strong>3. 比较 <code>MVC</code> 、<code>MVP</code> 、<code>MVVM</code></strong><br><strong><code>MVC（Model-View-Controller）</code></strong>：<br>优点：代码总量少；简单易懂。大部分的代码逻辑放在 <code>C</code> ，<code>M</code> 和 <code>V</code> 严格区分。代码分配遵循一定的规则。<br>缺点：业务逻辑和视图逻辑混在一起。代码过于集中、测试难度大、可扩展性弱、网络请求层无处安放。<br><strong><code>MVP（Model-View-Presenter）</code></strong>：<br><code>P</code> 负责业务逻辑。是 <code>M</code> 和 <code>V</code> 的桥接。<br>优点：耦合度降低、代码分配合理、测试方便。<br>缺点：<code>V</code> 的所有交互都要传给 <code>P</code> 处理。一旦功能增加，<code>V</code> 和 <code>P</code> 的代码量会翻倍增加，维护成本大。<br><strong><code>MVVM（Model-View-ViewModel）</code></strong>：<br><code>VM</code> 持有 <code>M</code> 。完全独立于视图 <code>V</code>，<code>V</code> 持有 <code>VM</code>，通过绑定属性自动进行更新。全部操作由响应式逻辑框架自动完成。<br>优点：分离了业务逻辑和视图逻辑。代码耦合度低、代码量合理。<br>缺点：需要引入第三方响应式框架，因为属性观察环环相扣调用栈很大，<code>DEBUG</code> 尤为痛苦。</p>
         
           <p class="article-more-link">
             <a href="/2020/06/13/interviewquestions/#more">Read More</a>
