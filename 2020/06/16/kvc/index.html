@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>理解 KVC | 写点东西</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="p {         font-family: &#39;Lato&#39;, &#39;PingFang SC&#39;, &#39;Microsoft YaHei&#39;, sans-serif;         font-size: 1.15em;     }     .article-entry p,     .article-entry table     .article-entry ul, .widget ul, .">
+<meta property="og:type" content="article">
+<meta property="og:title" content="理解 KVC">
+<meta property="og:url" content="https://star-93.github.io/2020/06/16/kvc/index.html">
+<meta property="og:site_name" content="写点东西">
+<meta property="og:description" content="p {         font-family: &#39;Lato&#39;, &#39;PingFang SC&#39;, &#39;Microsoft YaHei&#39;, sans-serif;         font-size: 1.15em;     }     .article-entry p,     .article-entry table     .article-entry ul, .widget ul, .">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-16T01:04:19.000Z">
+<meta property="article:modified_time" content="2020-06-16T03:11:01.240Z">
+<meta property="article:author" content="Xin Yang">
+<meta property="article:tag" content="KVC">
+<meta property="article:tag" content="键值编码">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="写点东西" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">写点东西</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">虽千万里，吾往矣。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://star-93.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-kvc" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/16/kvc/" class="article-date">
+  <time datetime="2020-06-16T01:04:19.000Z" itemprop="datePublished">2020-06-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Objective-C/">Objective-C</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      理解 KVC
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+
+<p><code>KVC(Key-Value-Coding)</code> ，即键值编码。是指 <code>iOS</code> 的开发中，可以允许开发者通过 <code>Key</code> 名直接访问对象的属性，或者给对象的属性赋值。而不需要调用明确的存取方法。这样就可以在运行时动态地访问和修改对象的属性。而不是在编译时确定，这也是 <code>iOS</code> 开发中的黑魔法之一。很多高级的 <code>iOS</code> 开发技巧都是基于 <code>KVC</code> 实现的。</p>
+<a id="more"></a>
+
+<p><code>KVC</code> 的定义都是对 <code>NSObject</code> 的扩展来实现的（<code>Objective-C</code> 中有个显式的 <code>NSKeyValueCoding</code> 类别名，而 <code>Swift</code> 没有，也不需要）。所以对于所有继承了 <code>NSObject</code> 的类型，也就是几乎所有的 <code>Objective-C</code> 对象都能使用 <code>KVC</code>（一些纯 <code>Swift</code> 类和结构体是不支持 <code>KVC</code> ）。</p>
+<h3 id="KVC-重要的四个方法"><a href="#KVC-重要的四个方法" class="headerlink" title="KVC 重要的四个方法"></a><code>KVC</code> 重要的四个方法</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 通过 key 取值</span></span><br><span class="line">- (<span class="keyword">nullable</span> <span class="keyword">id</span>)valueForKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"><span class="comment">// 通过 key 设值</span></span><br><span class="line">- (<span class="keyword">void</span>)setValue:(<span class="keyword">nullable</span> <span class="keyword">id</span>)value forKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"><span class="comment">// 通过 keyPath 取值</span></span><br><span class="line">- (<span class="keyword">nullable</span> <span class="keyword">id</span>)valueForKeyPath:(<span class="built_in">NSString</span> *)keyPath;</span><br><span class="line"><span class="comment">// 通过 keyPath 设值</span></span><br><span class="line">- (<span class="keyword">void</span>)setValue:(<span class="keyword">nullable</span> <span class="keyword">id</span>)value forKeyPath:(<span class="built_in">NSString</span> *)keyPath;</span><br></pre></td></tr></table></figure>
+<h3 id="其它方法"><a href="#其它方法" class="headerlink" title="其它方法"></a>其它方法</h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 默认返回 YES ，表示如果没有找到 set&lt;Key&gt; 方法的话，会按照 _key ，_isKey ，key ，isKey 的顺序搜索成员，设置成 NO 就不这样搜索。</span></span><br><span class="line">+ (<span class="built_in">BOOL</span>)accessInstanceVariablesDirectly;</span><br><span class="line"><span class="comment">// KVC 提供属性值正确性验证的 API，它可以用来检查 set 的值是否正确、为不正确的值做一个替换值或者拒绝设置新值并返回错误原因。</span></span><br><span class="line">- (<span class="built_in">BOOL</span>)validateValue:(<span class="keyword">inout</span> <span class="keyword">id</span> _Nullable * _Nonnull)ioValue forKey:(<span class="built_in">NSString</span> *)inKey error:(<span class="keyword">out</span> <span class="built_in">NSError</span> **)outError;</span><br><span class="line"><span class="comment">// 这是集合操作的 API ，里面还有一系列这样的 API ，如果属性是一个 NSMutableArray ，那么可以用这个方法来返回。</span></span><br><span class="line">- (<span class="built_in">NSMutableArray</span> *)mutableArrayValueForKeyPath:(<span class="built_in">NSString</span> *)keyPath;</span><br><span class="line"><span class="comment">// 如果 key 不存在，且没有 KVC 无法搜索到任何和 key 有关的字段或者属性，则会调用这个方法，默认是抛出异常。</span></span><br><span class="line">- (<span class="keyword">nullable</span> <span class="keyword">id</span>)valueForUndefinedKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"><span class="comment">// 和上一个方法一样，但这个方法是设值。</span></span><br><span class="line">- (<span class="keyword">void</span>)setValue:(<span class="keyword">nullable</span> <span class="keyword">id</span>)value forUndefinedKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"><span class="comment">// 如果你在 setValue 方法时给 value 传 nil，则会调用这个方法。</span></span><br><span class="line">- (<span class="keyword">void</span>)setNilValueForKey:(<span class="built_in">NSString</span> *)key;</span><br><span class="line"><span class="comment">//输入一组 key，返回该组 key 对应的 value ，再转成字典返回，用于将 Model 转到字典。</span></span><br><span class="line">- (<span class="built_in">NSDictionary</span>&lt;<span class="built_in">NSString</span> *, <span class="keyword">id</span>&gt; *)dictionaryWithValuesForKeys:(<span class="built_in">NSArray</span>&lt;<span class="built_in">NSString</span> *&gt; *)keys;</span><br></pre></td></tr></table></figure>
+
+<h3 id="KVC-如何寻找-key"><a href="#KVC-如何寻找-key" class="headerlink" title="KVC 如何寻找 key"></a><code>KVC</code> 如何寻找 <code>key</code></h3><figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)setValue:(<span class="keyword">nullable</span> <span class="keyword">id</span>)value forKey:(<span class="built_in">NSString</span> *)key;</span><br></pre></td></tr></table></figure>
+
+<p>当调用 <code>- (void)setValue:(nullable id)value forKey:(NSString *)key;</code> 时，底层的执行机制如下：<br>① 优先调用 <code>set&lt;Key&gt;:</code> 属性值方法，代码通过 <code>setter</code> 方法完成设置。注意，这里的 <code>&lt;key&gt;</code> 是指成员变量名，首字母大小写要符合 <code>KVC</code> 的命名规则。<br><br>② 如果没有找到 <code>setName:</code> 方法，<code>KVC</code> 机制会检查 <code>accessInstanceVariablesDirectly</code> 方法有没有返回 <code>YES</code> ，默认该方法会返回 <code>YES</code> ，如果你重写了该方法让其返回 <code>NO</code> 的话，那么在这一步 <code>KVC</code> 会执行 <code>setValue：forUndefinedKey:</code> 方法，不过一般开发者不会这么做。所以 <code>KVC</code> 机制会搜索该类里面有没有名为 <code>_&lt;key&gt;</code> 的成员变量，无论该变量是在类接口处定义，还是在类实现处定义，也无论用了什么样的访问修饰符，只在存在以 <code>_&lt;key&gt;</code> 命名的变量，<code>KVC</code> 都可以对该成员变量赋值。<br><br>③ 如果该类即没有 <code>set&lt;key&gt;:</code> 方法，也没有 <code>_&lt;key&gt;</code> 成员变量，<code>KVC</code> 机制会搜索 <code>_is&lt;Key&gt;</code> 的成员变量。<br><br>④ 如果该类即没有 <code>set&lt;Key&gt;:</code> 方法，也没有 <code>_&lt;key&gt;</code> 和 <code>_is&lt;Key&gt;</code> 成员变量，<code>KVC</code> 机制再会继续搜索 <code>&lt;key&gt;</code> 和 <code>is&lt;Key&gt;</code> 的成员变量。再给它们赋值。<br><br>⑤ 如果上面列出的方法或者成员变量都不存在，系统将会执行该对象的 <code>setValue:forUndefinedKey:</code> 方法，默认是抛出异常。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">nullable</span> <span class="keyword">id</span>)valueForKey:(<span class="built_in">NSString</span> *)key;</span><br></pre></td></tr></table></figure>
+
+<p>当调用 <code>- (nullable id)valueForKey:(NSString *)key;</code> 的代码时，<code>KVC</code> 对 <code>key</code> 的搜索方式不同于 <code>- (void)setValue:(nullable id)value forKey:(NSString *)key;</code> ，其搜索方式如下：<br>① 首先按 <code>get&lt;Key&gt;</code> ，<code>&lt;key&gt;</code> ，<code>is&lt;Key&gt;</code> 的顺序方法查找 <code>getter</code> 方法，找到的话会直接调用。如果是 <code>BOOL</code> 或者 <code>Int</code> 等值类型，会将其包装成一个 <code>NSNumber</code> 对象。<br><br>② 如果上面的 <code>getter</code> 没有找到，<code>KVC</code> 则会查找 <code>countOf&lt;Key&gt;</code> ，<code>objectIn&lt;Key&gt;AtIndex</code> 或 <code>&lt;key&gt;AtIndexes</code> 格式的方法。如果 <code>countOf&lt;Key&gt;</code> 方法和另外两个方法中的一个被找到，那么就会返回一个可以响应 <code>NSArray</code> 所有方法的代理集合(它是 <code>NSKeyValueArray</code> ，是 <code>NSArray</code> 的子类)，调用这个代理集合的方法，或者说给这个代理集合发送属于 <code>NSArray</code> 的方法，就会以 <code>countOf&lt;Key&gt;</code> ，<code>objectIn&lt;Key&gt;AtIndex</code> 或 <code>&lt;key&gt;AtIndexes</code> 这几个方法组合的形式调用。还有一个可选的 <code>get&lt;Key&gt;:range:</code> 方法。所以你想重新定义 <code>KVC</code> 的一些功能，你可以添加这些方法，需要注意的是你的方法名要符合 <code>KVC</code> 的标准命名方法，包括方法签名。<br><br>③ 如果上面的方法没有找到，那么会同时查找 <code>countOf&lt;Key&gt;</code> ，<code>enumeratorOf&lt;Key&gt;</code> ，<code>memberOf&lt;Key&gt;</code> 格式的方法。如果这三个方法都找到，那么就返回一个可以响应 <code>NSSet</code> 所的方法的代理集合，和上面一样，给这个代理集合发 <code>NSSet</code> 的消息，就会以 <code>countOf&lt;Key&gt;</code> ，<code>enumeratorOf&lt;Key&gt;</code> ，<code>memberOf&lt;Key&gt;</code> 组合的形式调用。<br><br>④ 如果还没有找到，再检查类方法 <code>accessInstanceVariablesDirectly</code> ，如果返回 <code>YES</code> (默认行为)，那么和先前的设值一样，会按 <code>_&lt;key&gt;</code> ，<code>_is&lt;Key&gt;</code> ，<code>&lt;key&gt;</code> ，<code>is&lt;Key&gt;</code> 的顺序搜索成员变量名，这里不推荐这么做，因为这样直接访问实例变量破坏了封装性，使代码更脆弱。如果 <code>accessInstanceVariablesDirectly</code> 方法返回 <code>NO</code> 的话，那么会直接调用 <code>valueForUndefinedKey:</code> 方法。</p>
+<h3 id="setValue-forKeyPath"><a href="#setValue-forKeyPath" class="headerlink" title="setValue:forKeyPath:"></a><code>setValue:forKeyPath:</code></h3><p><code>KVC</code> 对于 <code>keyPath</code> 是搜索机制第一步就是分离 <code>key</code> ，用小数点 <code>.</code> 来分割 <code>key</code> ，然后再像普通 <code>key</code> 一样按照先前介绍的顺序搜索下去。</p>
+<h3 id="KVC-处理异常"><a href="#KVC-处理异常" class="headerlink" title="KVC 处理异常"></a><code>KVC</code> 处理异常</h3><p><code>KVC</code> 中最常见的异常就是不小心使用了错误的 <code>key</code> ，或者在设值中不小心传递了 <code>nil</code> 的值，<code>KVC</code> 中有专门的方法来处理这些异常。</p>
+<p>通常在用 <code>KVC</code> 操作 <code>Model</code> 时，抛出异常的那两个方法 <code>- (nullable id)valueForUndefinedKey:(NSString *)key;</code> 和 <code>- (void)setValue:(nullable id)value forUndefinedKey:(NSString *)key;</code> 是需要重写的。虽然一般很小出现传递了错误的 <code>Key</code> 值这种情况，但是如果不小心出现了，直接抛出异常让 <code>App</code> 崩溃显然是不合理的。一般在这里直接让这个 <code>key</code> 打印出来即可，或者有些特殊情况需要特殊处理。<br>通常情况下，<code>KVC</code> 不允许你要在调用 <code>setValue:forKey:</code> 或者 <code>setValue:forKeyPath:</code> 时对非对象传递一个 <code>nil</code> 的值。很简单，因为值类型是不能为 <code>nil</code> 的。如果你不小心传了，<code>KVC</code> 会调用 <code>setNilValueForKey:</code> 方法。这个方法默认是抛出异常，所以一般而言最好还是重写这个方法。</p>
+<h3 id="KVC-处理非对象和自定义对象"><a href="#KVC-处理非对象和自定义对象" class="headerlink" title="KVC 处理非对象和自定义对象"></a><code>KVC</code> 处理非对象和自定义对象</h3><p><code>valueForKey:</code> 总是返回一个 <code>id</code> 对象，如果原本的变量类型是值类型或者结构体，返回值会封装成 <code>NSNumber</code> 或者 <code>NSValue</code> 对象。这两个类会处理从数字，布尔值到指针和结构体任何类型。然后开以者需要手动转换成原来的类型。尽管 <code>valueForKey:</code> 会自动将值类型封装成对象，但是 <code>setValue:forKey:</code> 却不行。你必须手动将值类型转换成 <code>NSNumber</code> 或者 <code>NSValue</code> 类型，才能传递过去。<br>对于自定义对象，<code>KVC</code> 也会正确地设值和取值。因为传递进去和取出来的都是 <code>id</code> 类型，所以需要开发者自己保证类型的正确性，运行时 <code>Objective-C</code> 在发送消息的会检查类型，如果错误会直接抛出异常。</p>
+<h3 id="KVC-与容器类"><a href="#KVC-与容器类" class="headerlink" title="KVC 与容器类"></a><code>KVC</code> 与容器类</h3><p>对象的属性可以是一对一的，也可以是一对多的。一对多的属性要么是有序的(数组)，要么是无序的(集合)。<br>不可变的有序容器属性和无序容器属性一般可以使用 <code>valueForKey:</code> 来获取。比如有一个叫 <code>items</code> 的 <code>NSArray</code> 属性，你可以用 <code>valueForKey:@&quot;items&quot;</code> 来获取这个属性。<code>KVC</code> 的取值搜索模式中使用了一种更灵活的方式来管理容器类。<br>当对象的属性是可变的容器时，对于有序的容器，可以用下面的方法：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="built_in">NSMutableArray</span> *)mutableArrayValueForKey:(<span class="built_in">NSString</span> *)key;</span><br></pre></td></tr></table></figure>
+<p>该方法返回一个可变有序数组，如果调用该方法，<code>KVC</code> 的搜索顺序如下：<br>① 搜索 <code>insertObject:in&lt;Key&gt;AtIndex:</code> ，<code>removeObjectFrom&lt;Key&gt;AtIndex:</code> 或者 <code>insert&lt;Key&gt;AtIndexes</code> ，<code>remove&lt;Key&gt;AtIndexes</code> 格式的方法。<br>如果至少找到一个 <code>insert</code> 方法和一个 <code>remove</code> 方法，那么同样返回一个可以响应 <code>NSMutableArray</code> 所有方法代理集合（类名是 <code>NSKeyValueFastMutableArray</code>）。给这个代理集合发送 <code>NSMutableArray</code> 的方法，以 <code>insertObject:in&lt;Key&gt;AtIndex:</code> ，<code>removeObjectFrom&lt;Key&gt;AtIndex:</code> 或者 <code>insert&lt;Key&gt;AtIndexes:</code> ，<code>remove&lt;Key&gt;AtIndexes</code> 组合的形式调用。还有两个可选实现的接口：<code>replaceOnjectAtIndex:withObject:</code> ，<code>replace&lt;Key&gt;AtIndexes:with&lt;Key&gt;:</code> 。</p>
+<p>② 如果上步的方法没有找到，则搜索 <code>set&lt;Key&gt;:</code> 格式的方法，如果找到，那么发送给代理集合的 <code>NSMutableArray</code> 最终都会调用 <code>set&lt;Key&gt;:</code> 方法。 也就是说，<code>mutableArrayValueForKey:</code> 取出的代理集合修改后，用 <code>set&lt;Key&gt;:</code> 重新赋值回去，这样做效率会低很多。所以推荐实现上面的方法。<br>③ 如果上一步的方法还还没有找到，再检查 <code>accessInstanceVariablesDirectly</code> 方法，返回 <code>YES</code> ，会按 <code>_&lt;key&gt;</code> ，<code>&lt;key&gt;</code> 的顺序搜索成员变量名，如果找到，那么发送的 <code>NSMutableArray</code> 消息方法直接交给这个成员变量处理。如果还是找不到，则调用 <code>valueForUndefinedKey:</code> 方法。</p>
+<p><strong><code>mutableArrayValueForKey</code> 的适用场景一般是用在对 <code>NSMutableArray</code> 添加 <code>Observer</code> 上。如果对象属性是个 <code>NSMutableArray</code> 、<code>NSMutableSet</code> 、<code>NSMutableDictionary</code> 等集合类型时，你给它添加 <code>KVO</code> 时，你会发现当你添加或者移除元素时并不能接收到变化。因为 <code>KVO</code> 的本质是系统监测到某个属性的内存地址或常量改变时，会添加上 <code>- (void)willChangeValueForKey:(NSString *)key</code> 和 <code>- (void)didChangeValueForKey:(NSString *)key</code> 方法来发送通知，所以一种解决方法是手动调用者两个方法，但是并不推荐，你永远无法像系统一样真正知道这个元素什么时候被改变。另一种便是利用使用<code>mutableArrayValueForKey:</code> 方法。</strong></p>
+<p>而对于无序的容器，可以用下面的方法：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="built_in">NSMutableSet</span> *)mutableSetValueForKey:(<span class="built_in">NSString</span> *)key;</span><br></pre></td></tr></table></figure>
+<p>该方法返回一个可变的无序数组，如果调用该方法，<code>KVC</code> 的搜索顺序如下：<br>① 搜索 <code>addObject&lt;Key&gt;Object:</code> ，<code>remove&lt;Key&gt;Object:</code> 或者 <code>add&lt;Key&gt;</code> ，<code>remove&lt;Key&gt;</code> 格式的方法。<br>如果至少找到一个 <code>insert</code> 方法和一个 <code>remove</code> 方法，那么同样返回一个可以响应 <code>NSMutableSet</code> 所有方法代理集合(类名是 <code>NSKeyValueFastMutableSet</code>)，那么给这个代理集合发送 <code>NSMutableSet</code> 的方法，以 <code>addObject&lt;Key&gt;Object:</code> ，<code>remove&lt;Key&gt;Object:</code> 或者 <code>add&lt;Key&gt;</code> ，<code>remove&lt;Key&gt;</code> 组合的形式调用。还有两个可选实现的接口：<code>intersect&lt;Key&gt;</code> ，<code>set&lt;Key&gt;:</code> 。<br>② 如果 <code>receiver</code> 是 <code>ManagedObject</code> ，那么就不会继续搜索。<br>③ 如果上一步的方法没有找到，则搜索 <code>set&lt;Key&gt;:</code> 格式的方法，如果找到，那么发送给代理集合的 <code>NSMutableSet</code> 最终都会调用 <code>set&lt;Key&gt;:</code> 方法。 也就是说，<code>mutableSetValueForKey</code> 取出的代理集合修改后，用 <code>set&lt;Key&gt;:</code> 重新赋值回去。这样做效率会低很多。所以推荐实现上面的方法。<br>④ 如果上一步的方法还还没有找到，再检查 <code>accessInstanceVariablesDirectly</code> 方法，返回 <code>YES</code> ，会按 <code>_&lt;key&gt;</code> ，<code>&lt;key&gt;</code> 的顺序搜索成员变量名，如果找到，那么发送的 <code>NSMutableSet</code> 消息方法直接交给这个成员变量处理。如果还是找不到，则调用 <code>valueForUndefinedKey:</code> 方法。</p>
+<h3 id="KVC-使用"><a href="#KVC-使用" class="headerlink" title="KVC 使用"></a>KVC 使用</h3><p><strong>动态地取值和设值。</strong><br><strong>访问和修改私有变量。</strong><br><strong><code>Model</code> 和字典转换。</strong> <code>MJExtension</code><br><strong>修改一些控件的内部属性。</strong> <code>UITextField</code> 中的 <code>_placeholderLabel</code><br><strong>操作集合。</strong><br><strong>实现高阶消息传递。</strong><br><strong>函数操作集合。</strong> <code>@avg</code> 、<code>@count</code> 、<code>@max</code> 、<code>@min</code> 、<code>@sum5</code></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://star-93.github.io/2020/06/16/kvc/" data-id="ckbh8gjfu0000r20o1ee7fbdk" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KVC/" rel="tag">KVC</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%AE%E5%80%BC%E7%BC%96%E7%A0%81/" rel="tag">键值编码</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/06/13/interviewquestions/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">面试题</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Objective-C/">Objective-C</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/iOS-%E5%BC%80%E5%8F%91/">iOS 开发</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/KVC/" rel="tag">KVC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS-%E5%BC%80%E5%8F%91/" rel="tag">iOS 开发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/runtime/" rel="tag">runtime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%89%93%E5%8C%85/" rel="tag">打包</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%AE%E5%80%BC%E7%BC%96%E7%A0%81/" rel="tag">键值编码</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" rel="tag">静态库</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/KVC/" style="font-size: 10px;">KVC</a> <a href="/tags/block/" style="font-size: 10px;">block</a> <a href="/tags/iOS-%E5%BC%80%E5%8F%91/" style="font-size: 20px;">iOS 开发</a> <a href="/tags/runtime/" style="font-size: 10px;">runtime</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" style="font-size: 10px;">内存管理</a> <a href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 15px;">基础知识</a> <a href="/tags/%E6%89%93%E5%8C%85/" style="font-size: 15px;">打包</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a> <a href="/tags/%E9%94%AE%E5%80%BC%E7%BC%96%E7%A0%81/" style="font-size: 10px;">键值编码</a> <a href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" style="font-size: 15px;">静态库</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">六月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">八月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">九月 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/06/16/kvc/">理解 KVC</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/13/interviewquestions/">面试题</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/10/thread/">thread</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/08/designpatterns/">面向对象的设计模式</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/05/runtime/">理解 Objective-C 的 Runtime</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 Xin Yang<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
