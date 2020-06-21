@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>实现一个 block 回调的 KVO | 写点东西</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="p {         font-family: &#39;Lato&#39;, &#39;PingFang SC&#39;, &#39;Microsoft YaHei&#39;, sans-serif;         font-size: 1.15em;     }     .article-entry p,     .article-entry table     .article-entry ul, .widget ul, .">
+<meta property="og:type" content="article">
+<meta property="og:title" content="实现一个 block 回调的 KVO">
+<meta property="og:url" content="https://star-93.github.io/2020/06/21/diykvo/index.html">
+<meta property="og:site_name" content="写点东西">
+<meta property="og:description" content="p {         font-family: &#39;Lato&#39;, &#39;PingFang SC&#39;, &#39;Microsoft YaHei&#39;, sans-serif;         font-size: 1.15em;     }     .article-entry p,     .article-entry table     .article-entry ul, .widget ul, .">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-21T07:33:31.000Z">
+<meta property="article:modified_time" content="2020-06-21T08:40:03.981Z">
+<meta property="article:author" content="Xin Yang">
+<meta property="article:tag" content="KVO">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="写点东西" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">写点东西</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">虽千万里，吾往矣。</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://star-93.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-diykvo" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/21/diykvo/" class="article-date">
+  <time datetime="2020-06-21T07:33:31.000Z" itemprop="datePublished">2020-06-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Objective-C/">Objective-C</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      实现一个 block 回调的 KVO
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<p><code>KVO</code> 是 <code>Objective-C</code> 对 观察者模式的一种实现。<code>KVO</code> 提供一种机制，指定一个被观察对象（<code>A 类</code>），在观察者（<code>B 类</code>）中添加监听，当对象的某个属性（<code>A 类</code>的字符串类型的属性 <code>name</code>）发生改变时，观察者（<code>B 类</code>）会获得通知并作出相应的处理。<code>KVO</code> 机制不需要给被观察者添加任何额外的代码。<br><code>MVC</code> 设计模式下，<code>KVO</code> 非常适合实现 <code>model</code> 和 <code>view</code> 之间的通讯。</p>
+<a id="more"></a>
+
+<h2 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h2><p>当观察某个被观察者时，<code>KVO</code> 动态的创建一个被观察者类的子类，并为这个新的子类重写了 被观察属性的 <code>setter</code> 方法。<code>setter</code> 方法随后负责通知观察者的这个属性的改变状况。</p>
+<p>动态创建被观察者类的子类是使用了一种 <strong><code>isa-swizzling</code></strong> 的技术。当观察 <code>A 类</code>的某个属性时，系统利用 <code>runtime</code> 机制动态创建一个名为 <code>NSKVONotifying_A</code> 的类继承自 <code>A 类</code>，并偷偷的将 <code>A 类</code>实例对象的 <code>isa</code> 指针指向了 <code>NSKVONotifying_A</code> 类， 并为 <code>NSKVONotifying_A</code> 类重写了 <code>setter</code> 方法。<code>setter</code> 方法会负责在调用原 <code>setter</code> 方法前后通知观察者。</p>
+<p>当我们从应用层面上看来，完全没有意识到有新的类出现，这是系统隐瞒了对 <code>KVO</code> 的底层实现过程，让我们误以为还是原来的类。当我们打印对象的实例方法 <code>class</code> 时输出的还是原有类。这是因为系统重写了原有类的 <code>class</code> 方法。</p>
+<h2 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h2><p><code>KVO</code> 的确很强大，了解它的内部实现能帮助我们更好的使用它。但官方提供的 <code>API</code> 实在不怎好用。比如，我们只能通过重写 <code>-observeValueForKeyPath:ofObject:change:context:</code> 方法来获得通知。所以在实际的开发中使用 <code>KVO</code> 的情景并不多，更多时候还是用 <code>Delegate</code> 或者是 <code>NotificationCenter</code> 。</p>
+<h2 id="自己实现"><a href="#自己实现" class="headerlink" title="自己实现"></a>自己实现</h2><p>尝试自己写一个简单的支持 <code>block</code> 的 <code>KVO</code> 了。</p>
+<p>创建 <code>NSObject</code> 的 <code>Category</code> ，并在 <code>.h</code> 文件中添加两个方法</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)oam_addObserver:(<span class="built_in">NSObject</span> *)observer forKeyPath:(<span class="built_in">NSString</span> *)keyPath usingBlock:(OAMObservingBlock)block;</span><br><span class="line">- (<span class="keyword">void</span>)oam_removeObserver:(<span class="built_in">NSObject</span> *)observer forKeyPath:(<span class="built_in">NSString</span> *)keyPath;</span><br></pre></td></tr></table></figure>
+<p><code>oam_addObserver</code> 方法实现的大致逻辑：</p>
+<ol>
+<li><p>先检查观察属性的类中是否有属性对应的 <code>setter</code> 方法。如果没有就抛出异常；</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SEL setterSEL = <span class="built_in">NSSelectorFromString</span>(setterForGetter(keyPath));</span><br><span class="line">Method setterMethod = class_getInstanceMethod([<span class="keyword">self</span> <span class="keyword">class</span>], setterSEL);</span><br><span class="line"><span class="keyword">if</span> (!setterMethod) &#123;</span><br><span class="line">    <span class="built_in">NSString</span> *reason = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"Object %@ does not have a setter method for key %@"</span>, <span class="keyword">self</span>, keyPath];</span><br><span class="line">    <span class="keyword">@throw</span> [<span class="built_in">NSException</span> exceptionWithName:<span class="built_in">NSInvalidArgumentException</span> reason:reason userInfo:<span class="literal">nil</span>];</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第一步里，先通过 <code>setterForGetter()</code> 方法获得相应的 <code>setter</code> 的名字（<code>SEL</code>）。也就是把 <code>key</code> 的首字母大写，然后前面加上 <code>set</code> 后面加上 <code>:</code> ，这样 <code>key</code> 就变成了 <code>setKey:</code> 。然后再用 <code>class_getInstanceMethod</code> 去获得 <code>setKey:</code> 的实现（<code>Method</code>）。如果没有，就要抛出异常。</p>
+</li>
+<li><p>检查对象的 <code>isa</code> 指向的类是否已经是一个继承自原有类的 <code>KVO</code> 类。如果不是，就新建一个继承原来类的子类，并把 <code>isa</code> 指向这个新建的子类；</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Class <span class="keyword">class</span> = object_getClass(<span class="keyword">self</span>);</span><br><span class="line"><span class="built_in">NSString</span> *className = <span class="built_in">NSStringFromClass</span>(<span class="keyword">class</span>);</span><br><span class="line"><span class="keyword">if</span> ([className hasPrefix:kOAMKVONotifyingPrefix]) &#123;</span><br><span class="line">    <span class="keyword">class</span> = [<span class="keyword">self</span> oam_KVOClassWithOriginalClassName:className];</span><br><span class="line">    object_setClass(<span class="keyword">self</span>, <span class="keyword">class</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第二步，我们先看类名有没有我们定义的前缀。如果没有，我们就去创建新的子类，并通过 <code>object_setClass()</code> 修改 <code>isa</code> 指针。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">- (Class)oam_KVOClassWithOriginalClassName:(<span class="built_in">NSString</span> *)className &#123;</span><br><span class="line">    <span class="comment">// 生成 OAMKVONotifying_Class 类名</span></span><br><span class="line">    <span class="built_in">NSString</span> *kvoClassName = [kOAMKVONotifyingPrefix stringByAppendingString:className];</span><br><span class="line">    Class <span class="keyword">class</span> = <span class="built_in">NSClassFromString</span>(kvoClassName);</span><br><span class="line">    <span class="comment">// 如果类已经存在，直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">class</span>) <span class="keyword">return</span> <span class="keyword">class</span>;</span><br><span class="line">    <span class="comment">// 不存在这个类则创建</span></span><br><span class="line">    Class originalClass = <span class="built_in">NSClassFromString</span>(className);</span><br><span class="line">    Class kvoClass = objc_allocateClassPair(originalClass, kvoClassName.UTF8String, <span class="number">0</span>);</span><br><span class="line">    <span class="comment">// 修改 kvoClass class 方法的实现 隐藏这个类。</span></span><br><span class="line">    Method classMethod = class_getInstanceMethod(originalClass, <span class="keyword">@selector</span>(<span class="keyword">class</span>));</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *types = method_getTypeEncoding(classMethod);</span><br><span class="line">    class_addMethod(kvoClass, <span class="keyword">@selector</span>(<span class="keyword">class</span>), (IMP)oam_class, types);</span><br><span class="line">    <span class="comment">// 注册 kvo 类</span></span><br><span class="line">    objc_registerClassPair(kvoClass);</span><br><span class="line">    <span class="keyword">return</span> kvoClass;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>动态创建新的类需要用 <code>objc/runtime.h</code> 中定义的 <code>objc_allocateClassPair()</code> 函数。传一个父类，类名，然后额外的空间（通常为 0），它返回给你一个类。然后就给这个类添加方法，也可以添加变量。这里，我们只重写了 <code>class</code> 方法来隐藏这个子类的存在。最后 <code>objc_registerClassPair()</code> 告诉 <code>runtime</code> 这个类的存在。</p>
+</li>
+<li><p>检查对象的 <code>KVO</code> 类重写过没有这个 <code>setter</code> 方法。如果没有，添加重写的 <code>setter</code> 方法；</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (![<span class="keyword">self</span> hasSelector:setterSEL]) &#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *types = method_getTypeEncoding(setterMethod);</span><br><span class="line">    class_addMethod(<span class="keyword">class</span>, setterSEL, (IMP)oam_setter, types);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第三步，重写 <code>setter</code> 方法。新的 <code>setter</code> 在调用原 <code>setter</code> 方法后，通知每个观察者（调用之前传入的 <code>block</code> ）：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> oam_setter(<span class="keyword">id</span> <span class="keyword">self</span>, SEL _cmd, <span class="keyword">id</span> newValue) &#123;</span><br><span class="line">    <span class="built_in">NSString</span> *setterName = <span class="built_in">NSStringFromSelector</span>(_cmd);</span><br><span class="line">    <span class="built_in">NSString</span> *getterName = getterForSetter(setterName);</span><br><span class="line">    <span class="keyword">if</span> (!getterName) &#123;</span><br><span class="line">        <span class="built_in">NSString</span> *reason = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"Object %@ does not have setter method %@"</span>, <span class="keyword">self</span>, setterName];</span><br><span class="line">        <span class="keyword">@throw</span> [<span class="built_in">NSException</span> exceptionWithName:<span class="built_in">NSInvalidArgumentException</span> reason:reason userInfo:<span class="literal">nil</span>];</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 获取旧值</span></span><br><span class="line">    <span class="keyword">id</span> oldValue = [<span class="keyword">self</span> valueForKey:getterName];</span><br><span class="line">    <span class="comment">// 调用父类的 setter 方法</span></span><br><span class="line">    <span class="keyword">struct</span> objc_super superclass = &#123;</span><br><span class="line">        .receiver = <span class="keyword">self</span>,</span><br><span class="line">        .super_class = class_getSuperclass(object_getClass(<span class="keyword">self</span>))</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="comment">// 这里需要做个类型强转。在 Xcode 6 里，新的 LLVM 会对 objc_msgSendSuper 以及 objc_msgSend 做严格的类型检查，如果不做类型转换。Xcode 报 too many arguments 的错误。</span></span><br><span class="line">    <span class="keyword">void</span> (*objc_msgSendSuperCasted)(<span class="keyword">void</span> *, SEL, <span class="keyword">id</span>) = (<span class="keyword">void</span> *)objc_msgSendSuper;</span><br><span class="line">    objc_msgSendSuperCasted(&amp;superclass, _cmd, newValue);</span><br><span class="line">    <span class="comment">// 找出观察者的数组, 调用对应对象的callback</span></span><br><span class="line">    <span class="built_in">NSMutableArray</span> *observers = objc_getAssociatedObject(<span class="keyword">self</span>, (__bridge <span class="keyword">const</span> <span class="keyword">void</span> *)(kOAMKVOAssociatedObservers));</span><br><span class="line">    <span class="keyword">for</span> (OAMObservationInfo *info <span class="keyword">in</span> observers) &#123;</span><br><span class="line">        <span class="keyword">if</span> ([info.key isEqualToString:getterName]) &#123;</span><br><span class="line">            <span class="built_in">dispatch_async</span>(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, <span class="number">0</span>), ^&#123;</span><br><span class="line">                info.block(getterName, <span class="keyword">self</span>, oldValue, newValue);</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>把这个观察者的相关信息存在 <code>associatedObject</code> 里然后添加这个观察者。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">OAMObservationInfo *info = [[OAMObservationInfo alloc] initWithObserver:observer Key:keyPath block:block];</span><br><span class="line"><span class="built_in">NSMutableArray</span> *observers = objc_getAssociatedObject(<span class="keyword">self</span>, (__bridge <span class="keyword">const</span> <span class="keyword">void</span> *)(kOAMKVOAssociatedObservers));</span><br><span class="line"><span class="keyword">if</span> (!observers) &#123;</span><br><span class="line">    observers = [<span class="built_in">NSMutableArray</span> array];</span><br><span class="line">    objc_setAssociatedObject(<span class="keyword">self</span>, (__bridge <span class="keyword">const</span> <span class="keyword">void</span> *)(kOAMKVOAssociatedObservers), observers, OBJC_ASSOCIATION_RETAIN_NONATOMIC);</span><br><span class="line">&#125;</span><br><span class="line">[observers addObject:info];</span><br></pre></td></tr></table></figure>
+<p>第四步，把这个观察的相关信息存在 <code>associatedObject</code> 里。观察的相关信息（观察者，被观察的 <code>key</code> ，和传入的 <code>block</code>）封装在 <code>OAMObservationInfo</code> 类里。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">OAMObservationInfo</span> : <span class="title">NSObject</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">weak</span>) <span class="built_in">NSObject</span> *observer;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>) <span class="built_in">NSString</span> *key;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">copy</span>) OAMObservingBlock block;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>到这，一个简单的支持 <code>block</code> 的 <code>KVO</code> 就完成了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://star-93.github.io/2020/06/21/diykvo/" data-id="ckborauyr0000b50o2qhicbyx" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KVO/" rel="tag">KVO</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/06/21/occategory/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Category 的真面目
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/06/16/kvc/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">理解 KVC</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Objective-C/">Objective-C</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/iOS-%E5%BC%80%E5%8F%91/">iOS 开发</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Category/" rel="tag">Category</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KVC/" rel="tag">KVC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KVO/" rel="tag">KVO</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Objective-C/" rel="tag">Objective-C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/categories/" rel="tag">categories</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS-%E5%BC%80%E5%8F%91/" rel="tag">iOS 开发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/runtime/" rel="tag">runtime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%89%93%E5%8C%85/" rel="tag">打包</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%AE%E5%80%BC%E7%BC%96%E7%A0%81/" rel="tag">键值编码</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" rel="tag">静态库</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Category/" style="font-size: 10px;">Category</a> <a href="/tags/KVC/" style="font-size: 10px;">KVC</a> <a href="/tags/KVO/" style="font-size: 10px;">KVO</a> <a href="/tags/Objective-C/" style="font-size: 10px;">Objective-C</a> <a href="/tags/block/" style="font-size: 10px;">block</a> <a href="/tags/categories/" style="font-size: 10px;">categories</a> <a href="/tags/iOS-%E5%BC%80%E5%8F%91/" style="font-size: 20px;">iOS 开发</a> <a href="/tags/runtime/" style="font-size: 10px;">runtime</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" style="font-size: 10px;">内存管理</a> <a href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 15px;">基础知识</a> <a href="/tags/%E6%89%93%E5%8C%85/" style="font-size: 15px;">打包</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a> <a href="/tags/%E9%94%AE%E5%80%BC%E7%BC%96%E7%A0%81/" style="font-size: 10px;">键值编码</a> <a href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" style="font-size: 15px;">静态库</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">六月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">八月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">九月 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/06/21/occategory/">Category 的真面目</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/21/diykvo/">实现一个 block 回调的 KVO</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/16/kvc/">理解 KVC</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/13/interviewquestions/">面试题</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/10/thread/">thread</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 Xin Yang<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

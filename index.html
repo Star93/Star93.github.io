@@ -70,6 +70,119 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-occategory" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/21/occategory/" class="article-date">
+  <time datetime="2020-06-21T09:40:18.000Z" itemprop="datePublished">2020-06-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/06/21/occategory/">Category 的真面目</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+
+<p>无论一个类设计的多么完美，在未来的需求演进中，都有可能会碰到一些无法预测的情况。那怎么扩展已有的类呢？一般而言，继承和组合是不错的选择。但是在 <code>Objective-C</code> 2.0 中，又提供了 <code>category</code> 这个语言特性，可以动态地为已有类添加新行为。如今 <code>category</code> 已经遍布于 <code>Objective-C</code> 代码的各个角落，从 <code>Apple</code> 官方的 <code>framework</code> 到各个开源框架，从功能繁复的大型 <code>App</code> 到简单的应用，<code>catagory</code> 无处不在。</p>
+        
+          <p class="article-more-link">
+            <a href="/2020/06/21/occategory/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://star-93.github.io/2020/06/21/occategory/" data-id="ckbovre6c0000h80ohp2i3wic" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Category/" rel="tag">Category</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Objective-C/" rel="tag">Objective-C</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/categories/" rel="tag">categories</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-diykvo" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/21/diykvo/" class="article-date">
+  <time datetime="2020-06-21T07:33:31.000Z" itemprop="datePublished">2020-06-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Objective-C/">Objective-C</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/06/21/diykvo/">实现一个 block 回调的 KVO</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <style type="text/css">
+    p {
+        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        font-size: 1.15em;
+    }
+    .article-entry p,
+    .article-entry table
+    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
+        line-height: 2em;
+    }
+</style>
+<p><code>KVO</code> 是 <code>Objective-C</code> 对 观察者模式的一种实现。<code>KVO</code> 提供一种机制，指定一个被观察对象（<code>A 类</code>），在观察者（<code>B 类</code>）中添加监听，当对象的某个属性（<code>A 类</code>的字符串类型的属性 <code>name</code>）发生改变时，观察者（<code>B 类</code>）会获得通知并作出相应的处理。<code>KVO</code> 机制不需要给被观察者添加任何额外的代码。<br><code>MVC</code> 设计模式下，<code>KVO</code> 非常适合实现 <code>model</code> 和 <code>view</code> 之间的通讯。</p>
+        
+          <p class="article-more-link">
+            <a href="/2020/06/21/diykvo/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://star-93.github.io/2020/06/21/diykvo/" data-id="ckborauyr0000b50o2qhicbyx" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KVO/" rel="tag">KVO</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-kvc" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/06/16/kvc/" class="article-date">
@@ -162,9 +275,10 @@
         line-height: 2em;
     }
 </style>
-<p><strong>1. 什么是设计模式？</strong><br>设计模式是一套被反复使用、多数人知晓、经过分类编目的代码设计经验的总结。简单理解为写代码的套路和模版。（创建型 结构型 行为型）。</p>
-<p><strong>2. 项目中使用过哪些设计模式？</strong><br><strong>工厂方法</strong>：工厂父类负责定义创建产品对象的公共接口，而工厂子类则负责生成具体的产品对象，即通过不同的工厂子类来创建不同的产品对象。简化类的初始化过程。<br><strong>单例</strong>：确保一个类只有一个实例变量，并提供一个全局访问点。<code>[NSNotificationCenter defaultCenter]</code>、<code>[NSUserDefaults standardUserDefaults]</code> 等。优点 延迟加载、节省内存。注意使用 <code>@synchronized</code>、<code>dispatch_once</code> 保证线程安全。<br><strong>代理</strong>：为某个对象提供一个代理对象并由这个代理对象控制对原对象的访问。降低代码耦合度。<code>Objective-C</code> 中通常使用 <code>protocol</code> 实现。<br><strong>观察者</strong>：定义对象间的一种一对多的依赖关系，使得每当一个对象的状态发生改变时，其相关依赖对象都可以得到通知并做相应的针对处理。<code>KVO</code>、<code>Notification</code> 。列表滚动偏移量变化监听、网络变化监听。</p>
-<p><strong>3. 比较 <code>MVC</code> 、<code>MVP</code> 、<code>MVVM</code></strong><br><strong><code>MVC（Model-View-Controller）</code></strong>：<br>优点：代码总量少；简单易懂。大部分的代码逻辑放在 <code>C</code> ，<code>M</code> 和 <code>V</code> 严格区分。代码分配遵循一定的规则。<br>缺点：业务逻辑和视图逻辑混在一起。代码过于集中、测试难度大、可扩展性弱、网络请求层无处安放。<br><strong><code>MVP（Model-View-Presenter）</code></strong>：<br><code>P</code> 负责业务逻辑。是 <code>M</code> 和 <code>V</code> 的桥接。<br>优点：耦合度降低、代码分配合理、测试方便。<br>缺点：<code>V</code> 的所有交互都要传给 <code>P</code> 处理。一旦功能增加，<code>V</code> 和 <code>P</code> 的代码量会翻倍增加，维护成本大。<br><strong><code>MVVM（Model-View-ViewModel）</code></strong>：<br><code>VM</code> 持有 <code>M</code> 。完全独立于视图 <code>V</code>，<code>V</code> 持有 <code>VM</code>，通过绑定属性自动进行更新。全部操作由响应式逻辑框架自动完成。<br>优点：分离了业务逻辑和视图逻辑。代码耦合度低、代码量合理。<br>缺点：需要引入第三方响应式框架，因为属性观察环环相扣调用栈很大，<code>DEBUG</code> 尤为痛苦。</p>
+
+<h2 id="什么是设计模式？"><a href="#什么是设计模式？" class="headerlink" title="什么是设计模式？"></a><strong>什么是设计模式？</strong></h2><p>设计模式是一套被反复使用、多数人知晓、经过分类编目的代码设计经验的总结。简单理解为写代码的套路和模版。（创建型 结构型 行为型）。</p>
+<h2 id="项目中使用过哪些设计模式？"><a href="#项目中使用过哪些设计模式？" class="headerlink" title="项目中使用过哪些设计模式？"></a><strong>项目中使用过哪些设计模式？</strong></h2><p><strong>工厂方法</strong>：工厂父类负责定义创建产品对象的公共接口，而工厂子类则负责生成具体的产品对象，即通过不同的工厂子类来创建不同的产品对象。简化类的初始化过程。<br><strong>单例</strong>：确保一个类只有一个实例变量，并提供一个全局访问点。<code>[NSNotificationCenter defaultCenter]</code>、<code>[NSUserDefaults standardUserDefaults]</code> 等。优点 延迟加载、节省内存。注意使用 <code>@synchronized</code>、<code>dispatch_once</code> 保证线程安全。<br><strong>代理</strong>：为某个对象提供一个代理对象并由这个代理对象控制对原对象的访问。降低代码耦合度。<code>Objective-C</code> 中通常使用 <code>protocol</code> 实现。<br><strong>观察者</strong>：定义对象间的一种一对多的依赖关系，使得每当一个对象的状态发生改变时，其相关依赖对象都可以得到通知并做相应的针对处理。<code>KVO</code>、<code>Notification</code> 。列表滚动偏移量变化监听、网络变化监听。</p>
+<h2 id="比较-MVC-、MVP-、MVVM"><a href="#比较-MVC-、MVP-、MVVM" class="headerlink" title="比较 MVC 、MVP 、MVVM"></a><strong>比较 <code>MVC</code> 、<code>MVP</code> 、<code>MVVM</code></strong></h2><p><strong><code>MVC（Model-View-Controller）</code></strong>：<br>优点：代码总量少；简单易懂。大部分的代码逻辑放在 <code>C</code> ，<code>M</code> 和 <code>V</code> 严格区分。代码分配遵循一定的规则。<br>缺点：业务逻辑和视图逻辑混在一起。代码过于集中、测试难度大、可扩展性弱、网络请求层无处安放。<br><strong><code>MVP（Model-View-Presenter）</code></strong>：<br><code>P</code> 负责业务逻辑。是 <code>M</code> 和 <code>V</code> 的桥接。<br>优点：耦合度降低、代码分配合理、测试方便。<br>缺点：<code>V</code> 的所有交互都要传给 <code>P</code> 处理。一旦功能增加，<code>V</code> 和 <code>P</code> 的代码量会翻倍增加，维护成本大。<br><strong><code>MVVM（Model-View-ViewModel）</code></strong>：<br><code>VM</code> 持有 <code>M</code> 。完全独立于视图 <code>V</code>，<code>V</code> 持有 <code>VM</code>，通过绑定属性自动进行更新。全部操作由响应式逻辑框架自动完成。<br>优点：分离了业务逻辑和视图逻辑。代码耦合度低、代码量合理。<br>缺点：需要引入第三方响应式框架，因为属性观察环环相扣调用栈很大，<code>DEBUG</code> 尤为痛苦。</p>
         
           <p class="article-more-link">
             <a href="/2020/06/13/interviewquestions/#more">Read More</a>
@@ -515,122 +629,6 @@
 
 
   
-    <article id="post-identifier" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/06/01/identifier/" class="article-date">
-  <time datetime="2020-05-31T23:45:09.000Z" itemprop="datePublished">2020-06-01</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Objective-C/">Objective-C</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/06/01/identifier/">Objective-C 基础知识</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <style type="text/css">
-    p {
-        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-        font-size: 1.15em;
-    }
-    .article-entry p,
-    .article-entry table
-    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
-        line-height: 2em;
-    }
-</style>
-<p>总结一些基础的知识。</p>
-        
-          <p class="article-more-link">
-            <a href="/2020/06/01/identifier/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://star-93.github.io/2020/06/01/identifier/" data-id="ckb001uxx0001a00o1zzcceiy" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-mergefile" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/08/22/mergefile/" class="article-date">
-  <time datetime="2017-08-22T07:05:27.000Z" itemprop="datePublished">2017-08-22</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/22/mergefile/">合并库文件使其兼容真机和模拟器</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <style type="text/css">
-    p {
-        font-family: 'Lato', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-        font-size: 1.15em;
-    }
-    .article-entry p,
-    .article-entry table
-    .article-entry ul, .widget ul, .article-entry ol, .widget ol, .article-entry dl, .widget dl {
-        line-height: 2em;
-    }
-</style>
-<p>上一篇介绍了库还有打包静态库的流程，这篇主要记录下真机和模拟器的 CPU 架构。以及将打包的静态库（真机版和模拟器版）合并。</p>
-        
-          <p class="article-more-link">
-            <a href="/2017/08/22/mergefile/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://star-93.github.io/2017/08/22/mergefile/" data-id="ckb1grkm900007n0o3ae6a44w" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/iOS-%E5%BC%80%E5%8F%91/" rel="tag">iOS 开发</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%89%93%E5%8C%85/" rel="tag">打包</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" rel="tag">静态库</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
@@ -656,7 +654,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/KVC/" rel="tag">KVC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS-%E5%BC%80%E5%8F%91/" rel="tag">iOS 开发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/runtime/" rel="tag">runtime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%89%93%E5%8C%85/" rel="tag">打包</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%AE%E5%80%BC%E7%BC%96%E7%A0%81/" rel="tag">键值编码</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" rel="tag">静态库</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Category/" rel="tag">Category</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KVC/" rel="tag">KVC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KVO/" rel="tag">KVO</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Objective-C/" rel="tag">Objective-C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/categories/" rel="tag">categories</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS-%E5%BC%80%E5%8F%91/" rel="tag">iOS 开发</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/runtime/" rel="tag">runtime</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag">内存管理</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%89%93%E5%8C%85/" rel="tag">打包</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag">设计模式</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%AE%E5%80%BC%E7%BC%96%E7%A0%81/" rel="tag">键值编码</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" rel="tag">静态库</a></li></ul>
     </div>
   </div>
 
@@ -666,7 +664,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签云</h3>
     <div class="widget tagcloud">
-      <a href="/tags/KVC/" style="font-size: 10px;">KVC</a> <a href="/tags/block/" style="font-size: 10px;">block</a> <a href="/tags/iOS-%E5%BC%80%E5%8F%91/" style="font-size: 20px;">iOS 开发</a> <a href="/tags/runtime/" style="font-size: 10px;">runtime</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" style="font-size: 10px;">内存管理</a> <a href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 15px;">基础知识</a> <a href="/tags/%E6%89%93%E5%8C%85/" style="font-size: 15px;">打包</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a> <a href="/tags/%E9%94%AE%E5%80%BC%E7%BC%96%E7%A0%81/" style="font-size: 10px;">键值编码</a> <a href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" style="font-size: 15px;">静态库</a>
+      <a href="/tags/Category/" style="font-size: 10px;">Category</a> <a href="/tags/KVC/" style="font-size: 10px;">KVC</a> <a href="/tags/KVO/" style="font-size: 10px;">KVO</a> <a href="/tags/Objective-C/" style="font-size: 10px;">Objective-C</a> <a href="/tags/block/" style="font-size: 10px;">block</a> <a href="/tags/categories/" style="font-size: 10px;">categories</a> <a href="/tags/iOS-%E5%BC%80%E5%8F%91/" style="font-size: 20px;">iOS 开发</a> <a href="/tags/runtime/" style="font-size: 10px;">runtime</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" style="font-size: 10px;">内存管理</a> <a href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 15px;">基础知识</a> <a href="/tags/%E6%89%93%E5%8C%85/" style="font-size: 15px;">打包</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a> <a href="/tags/%E9%94%AE%E5%80%BC%E7%BC%96%E7%A0%81/" style="font-size: 10px;">键值编码</a> <a href="/tags/%E9%9D%99%E6%80%81%E5%BA%93/" style="font-size: 15px;">静态库</a>
     </div>
   </div>
 
@@ -688,6 +686,14 @@
       <ul>
         
           <li>
+            <a href="/2020/06/21/occategory/">Category 的真面目</a>
+          </li>
+        
+          <li>
+            <a href="/2020/06/21/diykvo/">实现一个 block 回调的 KVO</a>
+          </li>
+        
+          <li>
             <a href="/2020/06/16/kvc/">理解 KVC</a>
           </li>
         
@@ -697,14 +703,6 @@
         
           <li>
             <a href="/2020/06/10/thread/">thread</a>
-          </li>
-        
-          <li>
-            <a href="/2020/06/08/designpatterns/">面向对象的设计模式</a>
-          </li>
-        
-          <li>
-            <a href="/2020/06/05/runtime/">理解 Objective-C 的 Runtime</a>
           </li>
         
       </ul>
